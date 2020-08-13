@@ -1,0 +1,7 @@
+/var/log/mcrouter/*.log {
+  compress
+  copytruncate
+  daily
+  missingok
+  notifempty
+}

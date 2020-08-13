@@ -1,0 +1,42 @@
+diff -Naupr rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32.orig/CMakeLists.txt rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32/CMakeLists.txt
+--- rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32.orig/CMakeLists.txt	2019-09-04 14:48:58.000000000 +0200
++++ rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32/CMakeLists.txt	2020-07-30 14:31:11.211868837 +0200
+@@ -11,6 +11,8 @@ set(CMAKE_MODULE_PATH
+   "${CMAKE_CURRENT_SOURCE_DIR}/build/fbcode_builder/CMake"
+   ${CMAKE_MODULE_PATH}
+ )
++set(LIB_INSTALL_DIR lib CACHE STRING
++  "The subdirectory where libraries should be installed")
+ 
+ # Joins arguments and stores the result in ${var}.
+ function(join var)
+@@ -331,7 +333,7 @@ target_compile_options(
+ 
+ enable_testing()
+ 
+-install(TARGETS ReactiveSocket EXPORT rsocket-exports DESTINATION lib)
++install(TARGETS ReactiveSocket EXPORT rsocket-exports DESTINATION ${LIB_INSTALL_DIR})
+ install(DIRECTORY rsocket DESTINATION include FILES_MATCHING PATTERN "*.h")
+ install(EXPORT rsocket-exports NAMESPACE rsocket:: DESTINATION lib/cmake/rsocket)
+ include(CMakePackageConfigHelpers)
+diff -Naupr rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32.orig/yarpl/CMakeLists.txt rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32/yarpl/CMakeLists.txt
+--- rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32.orig/yarpl/CMakeLists.txt	2019-09-04 14:48:58.000000000 +0200
++++ rsocket-cpp-dd777b8eb153f5564ebaa0f068ebf227e0916e32/yarpl/CMakeLists.txt	2020-07-30 14:30:20.882697427 +0200
+@@ -8,6 +8,8 @@ set(CMAKE_MODULE_PATH
+   "${CMAKE_CURRENT_SOURCE_DIR}/../build/fbcode_builder/CMake"
+   ${CMAKE_MODULE_PATH}
+ )
++set(LIB_INSTALL_DIR lib CACHE STRING
++  "The subdirectory where libraries should be installed")
+ 
+ add_definitions(-std=c++14)
+ option(BUILD_TESTS "BUILD_TESTS" ON)
+@@ -131,7 +133,7 @@ configure_package_config_file(
+     yarpl-config.cmake
+     INSTALL_DESTINATION lib/cmake/yarpl
+ )
+-install(TARGETS yarpl EXPORT yarpl-exports DESTINATION lib)
++install(TARGETS yarpl EXPORT yarpl-exports DESTINATION ${LIB_INSTALL_DIR})
+ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} DESTINATION include FILES_MATCHING PATTERN "*.h")
+ install(
+     EXPORT yarpl-exports

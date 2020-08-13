@@ -1,0 +1,1 @@
+OPTIONS="--config file:/etc/mcrouter/mcrouter.json -p 5000 -L /var/log/mcrouter/mcrouter.log"

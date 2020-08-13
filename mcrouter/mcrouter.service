@@ -1,0 +1,13 @@
+[Unit]
+Description=Mcrouter memcached protocol router
+After=network-online.target
+
+[Service]
+User=mcrouter
+EnvironmentFile=-/etc/sysconfig/mcrouter
+ExecStartPre=/usr/bin/mcrouter $OPTIONS --validate-config
+ExecStart=/usr/bin/mcrouter $OPTIONS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
