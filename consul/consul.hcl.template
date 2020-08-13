@@ -1,0 +1,11 @@
+datacenter = "dc1"
+data_dir = "/var/lib/consul"
+# Output from: consul keygen
+encrypt = ""
+performance {
+  raft_multiplier = 1
+}
+#server = true
+#bootstrap_expect = 3
+#ui = true
+disable_update_check = true
