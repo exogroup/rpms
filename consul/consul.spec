@@ -2,7 +2,7 @@
 
 Summary: Tool for service discovery and configuration
 Name: consul
-Version: 1.8.2
+Version: 1.8.3
 Release: 1
 License: MPLv2.0
 URL: https://consul.io/
@@ -62,6 +62,9 @@ getent passwd consul >/dev/null || \
 
 
 %changelog
+* Mon Aug 31 2020 Matthias Saou <matthias@saou.eu> 1.8.3-1
+- Update to 1.8.3.
+
 * Wed Aug 12 2020 Matthias Saou <matthias@saou.eu> 1.8.2-1
 - Update to 1.8.2.
 
