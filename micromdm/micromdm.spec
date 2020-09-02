@@ -9,6 +9,7 @@ License:    MIT
 URL:        https://github.com/micromdm/micromdm
 Source0:    https://github.com/micromdm/micromdm/releases/download/v%{version}/micromdm_v%{version}.zip 
 Source1:    micromdm.service
+Source2:    micromdm.serviceenvironmentfile.conf
 Requires(pre): shadow-utils
 %{?systemd_requires}
 BuildRequires: systemd
@@ -31,9 +32,11 @@ one or more products, not a solution that lives on its own.
 mkdir -p %{buildroot}/opt/micromdm/bin/
 mkdir -p %{buildroot}/opt/micromdm/db/
 mkdir -p %{buildroot}/opt/micromdm/filerepo/
+mkdir -p %{buildroot}/opt/micromdm/service/
 install -D -p -m 0755 linux/micromdm %{buildroot}/opt/micromdm/bin/micromdm
 install -D -p -m 0755 linux/mdmctl   %{buildroot}/opt/micromdm/bin/mdmctl
 install -D -p -m 0644 micromdm.db    %{buildroot}/opt/micromdm/db/micromdm.db
+install -D -p -m 0644 %{SOURCE2}     %{buildroot}/opt/micromdm/service/serviceenvironmentfile.conf
 install -D -p -m 0644 %{SOURCE1}     %{buildroot}%{_unitdir}/micromdm.service 
 
 %pre
@@ -58,6 +61,7 @@ exit 0
 %dir /opt/micromdm/
 /opt/micromdm/bin/
 %config(noreplace) /opt/micromdm/db/
+%config(noreplace) /opt/micromdm/service/
 /opt/micromdm/filerepo/
 /opt/micromdm/bin/micromdm
 /opt/micromdm/bin/mdmctl

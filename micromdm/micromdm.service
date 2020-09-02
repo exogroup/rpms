@@ -5,7 +5,8 @@ Wants=network-online.target
 After=network.target network-online.target
 
 [Service]
-ExecStart=/opt/micromdm/bin/micromdm serve -config-path /opt/micromdm/db -server-url=https://mmdm.exogroup.com -api-key titititi -filerepo /opt/micromdm/filerepo -tls=false
+EnvironmentFile=-/opt/micromdm/service/serviceenvironmentfile.conf
+ExecStart=/opt/micromdm/bin/micromdm serve -config-path /opt/micromdm/db $OPTIONS -filerepo /opt/micromdm/filerepo -tls=false
 User=micromdm
 Group=micromdm
 Restart=always
