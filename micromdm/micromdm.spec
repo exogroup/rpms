@@ -42,7 +42,7 @@ install -D -p -m 0644 %{SOURCE1}     %{buildroot}%{_unitdir}/micromdm.service
 %pre
 getent group micromdm >/dev/null || groupadd -r micromdm
 getent passwd micromdm >/dev/null || \
-    useradd -r -g micromdm -d /opt/micromdm/ -s /sbin/nologin \
+    useradd -r -g micromdm -d /opt/micromdm -s /sbin/nologin \
     -c "MicroMDM Server" micromdm
 exit 0
 
