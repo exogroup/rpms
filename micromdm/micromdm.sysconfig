@@ -1,2 +1,2 @@
 API_KEY='ApIKeyApIKeyApIKeyApIKeyApIKeyApIKey'
-OPTIONS='-server-url=https://mmdm0.exogroup.com -tls=false'
+OPTIONS='-server-url=https://mmdm.example.com -tls=false'
