@@ -3,19 +3,17 @@
 Name:       micromdm
 Version:    1.6.0
 Release:    1%{?dist}
-Summary:    MicroMDM is a Mobile Device Management server for Apple Devices
-#Group:      Applications/System
+Summary:    API focused Mobile Device Management server for Apple Devices
 License:    MIT
 URL:        https://github.com/micromdm/micromdm
-Source0:    https://github.com/micromdm/micromdm/releases/download/v%{version}/micromdm_v%{version}.zip 
+Source0:    https://github.com/micromdm/micromdm/releases/download/v%{version}/micromdm_v%{version}.zip
 Source1:    micromdm.service
-Source2:    micromdm.serviceenvironmentfile.conf
+Source2:    micromdm.sysconfig
 Requires(pre): shadow-utils
 %{?systemd_requires}
 BuildRequires: systemd
 
 %description
-Not a product!
 MicroMDM is not a full featured device management product.
 The mission of MicroMDM is to enable a secure and scalable MDM deployment for
 Apple Devices, and expose the full set of Apple MDM commands and responses
@@ -29,20 +27,18 @@ one or more products, not a solution that lives on its own.
 %build
 
 %install
-mkdir -p %{buildroot}/opt/micromdm/bin/
-mkdir -p %{buildroot}/opt/micromdm/db/
-mkdir -p %{buildroot}/opt/micromdm/filerepo/
-mkdir -p %{buildroot}/opt/micromdm/service/
-install -D -p -m 0755 linux/micromdm %{buildroot}/opt/micromdm/bin/micromdm
-install -D -p -m 0755 linux/mdmctl   %{buildroot}/opt/micromdm/bin/mdmctl
-install -D -p -m 0644 micromdm.db    %{buildroot}/opt/micromdm/db/micromdm.db
-install -D -p -m 0644 %{SOURCE2}     %{buildroot}/opt/micromdm/service/serviceenvironmentfile.conf
-install -D -p -m 0644 %{SOURCE1}     %{buildroot}%{_unitdir}/micromdm.service 
+# Relevant zip file content, we ignore the 'darwin' directory
+mkdir -p %{buildroot}%{_sbindir}
+mkdir -p %{buildroot}/var/lib/micromdm/filerepo
+install -p -m 0755 linux/* %{buildroot}%{_sbindir}/
+# Service and require sysconfig file
+install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/micromdm.service
+install -D -p -m 0640 %{SOURCE2} %{buildroot}/etc/sysconfig/micromdm
 
 %pre
 getent group micromdm >/dev/null || groupadd -r micromdm
 getent passwd micromdm >/dev/null || \
-    useradd -r -g micromdm -d /opt/micromdm -s /sbin/nologin \
+    useradd -r -g micromdm -d /var/lib/micromdm -s /sbin/nologin \
     -c "MicroMDM Server" micromdm
 exit 0
 
@@ -57,14 +53,11 @@ exit 0
 %systemd_postun_with_restart micromdm.service
 
 %files
-%defattr(-,micromdm,micromdm,-)
-%dir /opt/micromdm/
-/opt/micromdm/bin/
-%config(noreplace) /opt/micromdm/db/
-%config(noreplace) /opt/micromdm/service/
-/opt/micromdm/filerepo/
-/opt/micromdm/bin/micromdm
-/opt/micromdm/bin/mdmctl
+%{_sbindir}/mdmctl
+%{_sbindir}/micromdm
+%attr(0750,micromdm,micromdm) %dir /var/lib/micromdm/
+%attr(0750,micromdm,micromdm) %dir /var/lib/micromdm/filerepo/
+%attr(0640,root,micromdm) %config(noreplace) /etc/sysconfig/micromdm
 %{_unitdir}/micromdm.service
 
 %changelog

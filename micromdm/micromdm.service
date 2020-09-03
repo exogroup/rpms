@@ -5,8 +5,8 @@ Wants=network-online.target
 After=network.target network-online.target
 
 [Service]
-EnvironmentFile=-/opt/micromdm/service/serviceenvironmentfile.conf
-ExecStart=/opt/micromdm/bin/micromdm serve -config-path /opt/micromdm/db $OPTIONS -filerepo /opt/micromdm/filerepo -tls=false
+EnvironmentFile=-/etc/sysconfig/micromdm
+ExecStart=/usr/sbin/micromdm serve -api-key $API_KEY -config-path /var/lib/micromdm/config -filerepo /var/lib/micromdm/filerepo $OPTIONS
 User=micromdm
 Group=micromdm
 Restart=always
