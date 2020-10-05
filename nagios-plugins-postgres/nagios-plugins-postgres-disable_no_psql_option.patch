@@ -1,0 +1,11 @@
+--- check_postgres-2.22.0/check_postgres.pl.org	2015-09-25 11:32:48.333239709 +0000
++++ check_postgres-2.22.0/check_postgres.pl	2015-09-25 11:32:53.049248567 +0000
+@@ -50,7 +50,7 @@
+ $PGBINDIR = '';
+ 
+ ## If this is true, $opt{PSQL} and $opt{PGBINDIR} are disabled for security reasons
+-our $NO_PSQL_OPTION = 1;
++our $NO_PSQL_OPTION = 0;
+ 
+ ## If true, we show how long each query took by default. Requires Time::HiRes to be installed.
+ $opt{showtime} = 1;
