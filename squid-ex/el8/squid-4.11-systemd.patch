@@ -1,0 +1,39 @@
+diff --git a/configure b/configure
+index 17b2ebf..9530f6b 100755
+--- a/configure
++++ b/configure
+@@ -33915,6 +33915,7 @@ done
+   fi
+   if test "x$SYSTEMD_LIBS" != "x" ; then
+     CXXFLAGS="$SYSTEMD_CFLAGS $CXXFLAGS"
++    LDFLAGS="$SYSTEMD_LIBS $LDFLAGS"
+ 
+ $as_echo "#define USE_SYSTEMD 1" >>confdefs.h
+ 
+diff --git a/src/Debug.h b/src/Debug.h
+index 6eecd01..ddd9e38 100644
+--- a/src/Debug.h
++++ b/src/Debug.h
+@@ -99,6 +99,10 @@ public:
+ 
+     /// configures the active debugging context to write syslog ALERT
+     static void ForceAlert();
++
++    /// prefixes each grouped debugs() line after the first one in the group
++    static std::ostream& Extra(std::ostream &os) { return os << "\n    "; }
++
+ private:
+     static Context *Current; ///< deepest active context; nil outside debugs()
+ };
+diff --git a/configure.ac b/configure.ac
+index d3c5da8..806302c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2162,6 +2162,7 @@ if test "x$with_systemd" != "xno" -a "x$squid_host_os" = "xlinux"; then
+   fi
+   if test "x$SYSTEMD_LIBS" != "x" ; then
+     CXXFLAGS="$SYSTEMD_CFLAGS $CXXFLAGS"
++    LDFLAGS="$SYSTEMD_LIBS $LDFLAGS"
+     AC_DEFINE(USE_SYSTEMD,1,[systemd support is available])
+   else
+     with_systemd=no
