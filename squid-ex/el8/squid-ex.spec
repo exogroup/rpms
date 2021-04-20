@@ -1,6 +1,6 @@
 %define __perl_requires %{SOURCE98}
 
-Name:     squid
+Name:     squid-ex
 Version:  4.11
 Release:  3%{?dist}
 Summary:  The Squid proxy caching server
@@ -49,6 +49,9 @@ Patch503: squid-4.11-CVE-2020-15811.patch
 # https://bugzilla.redhat.com/show_bug.cgi?id=1871700
 Patch504: squid-4.11-CVE-2020-15810.patch
 
+# EXOGROUP patches
+Patch600: squid-4.11-forwardsslbump.patch
+
 
 Requires: bash >= 2.0
 Requires(pre): shadow-utils
@@ -94,7 +97,7 @@ lookup program (dnsserver), a program for retrieving FTP data
 (ftpget), and some management and client tools.
 
 %prep
-%setup -q
+%setup -q -n squid-%{version}
 
 # Upstream patches
 
@@ -117,6 +120,8 @@ lookup program (dnsserver), a program for retrieving FTP data
 %patch503 -p1 -b .CVE-2020-15811
 %patch504 -p1 -b .CVE-2020-15810
 
+%patch600 -p1 -b .forwardsslbump
+
 # https://bugzilla.redhat.com/show_bug.cgi?id=1679526
 # Patch in the vendor documentation and used different location for documentation
 sed -i 's|@SYSCONFDIR@/squid.conf.documented|%{_pkgdocdir}/squid.conf.documented|' src/squid.8.in
@@ -124,6 +129,9 @@ sed -i 's|@SYSCONFDIR@/squid.conf.documented|%{_pkgdocdir}/squid.conf.documented
 %build
 # cppunit-config patch changes configure.ac
 autoconf
+
+# Increase the 128 default
+export CXXFLAGS="%{build_cxxflags} -DMAXTCPLISTENPORTS=512"
 
 # NIS helper has been removed because of the following bug
 # https://bugzilla.redhat.com/show_bug.cgi?id=1531540
@@ -332,6 +340,11 @@ fi
 
 
 %changelog
+* Tue Apr 20 2021 Matthias Saou <matthias@saou.eu> 7:4.11-3
+- Fork as squid-ex, to avoid automatically going to/from the original.
+- Include patch to allow SSL Bumped requests to be forwarded to cache peers.
+- Increase MAXTCPLISTENPORTS from 128 to 512.
+
 * Wed Aug 26 2020 Lubos Uhliarik <luhliari@redhat.com> - 7:4.11-3
 - Resolves: #1871705 - CVE-2020-24606 squid: Improper Input Validation could
   result in a DoS
