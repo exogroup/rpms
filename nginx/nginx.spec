@@ -1,88 +1,109 @@
 %global  _hardened_build     1
 %global  nginx_user          nginx
 
+# Disable strict symbol checks in the link editor.
+# See: https://src.fedoraproject.org/rpms/redhat-rpm-config/c/078af19
+%undefine _strict_symbol_defs_build
+
+%bcond_with geoip
+
+# nginx gperftools support should be dissabled for RHEL >= 8
+# see: https://bugzilla.redhat.com/show_bug.cgi?id=1931402
+%if 0%{?rhel} >= 8
+%global with_gperftools 0
+%else
 # gperftools exist only on selected arches
 # gperftools *detection* is failing on ppc64*, possibly only configure
 # bug, but disable anyway.
 %ifnarch s390 s390x ppc64 ppc64le
 %global with_gperftools 1
 %endif
+%endif
 
 %global with_aio 1
-
-%if 0%{?fedora} >= 16 || 0%{?rhel} >= 7
-%global with_systemd 1
-%else
-%global with_systemd 0
-%endif
 
 %if 0%{?fedora} > 22
 %global with_mailcap_mimetypes 1
 %endif
 
 # Custom
-%global naxsi_version 0.56
-%global passenger_version 5.3.4
+%global geoip2_version 3.3
+%global naxsi_version 1.3
+%global passenger_version 6.0.8
+%global brotli_version 1.0.0rc
 %global fiftyoned_version 3.2.20.4
-%bcond_without brotli
 %bcond_without geoip2
+%bcond_without naxsi
 %bcond_without passenger
+%bcond_without brotli
 %bcond_without 51D
 
 Name:              nginx
 Epoch:             1
-Version:           1.18.0
-Release:           0%{?dist}.ex1
+Version:           1.20.0
+Release:           2%{?dist}.ex1
 
 Summary:           A high performance web server and reverse proxy server
-Group:             System Environment/Daemons
 # BSD License (two clause)
 # http://www.freebsd.org/copyright/freebsd-license.html
 License:           BSD
-URL:               http://nginx.org/
+URL:               https://nginx.org
 
 Source0:           https://nginx.org/download/nginx-%{version}.tar.gz
+Source1:           https://nginx.org/download/nginx-%{version}.tar.gz.asc
+# Keys are found here: https://nginx.org/en/pgp_keys.html
+Source2:           https://nginx.org/keys/maxim.key
+Source3:           https://nginx.org/keys/mdounin.key
+Source4:           https://nginx.org/keys/sb.key
 Source10:          nginx.service
 Source11:          nginx.logrotate
 Source12:          nginx.conf
 Source13:          nginx-upgrade
 Source14:          nginx-upgrade.8
-Source15:          nginx.init
-Source100:         index.html
-Source101:         poweredby.png
 Source102:         nginx-logo.png
 Source103:         404.html
 Source104:         50x.html
 Source200:         README.dynamic
 Source210:         UPGRADE-NOTES-1.6-to-1.10
-Source302:         ngx_http_geoip2_module.c
-Source303:         ngx_stream_geoip2_module.c
-Source304:         ngx_http_geoip2_module.config
-Source305:         https://github.com/nbs-system/naxsi/archive/%{naxsi_version}.tar.gz
-Source306:         http://s3.amazonaws.com/phusion-passenger/releases/passenger-%{passenger_version}.tar.gz
-# https://github.com/eustas/ngx_brotli
-Source307:         ngx_http_brotli_filter_module.c
-Source308:         ngx_http_brotli_static_module.c
-Source309:         ngx_http_brotli_module.config
-Source310:         https://github.com/51Degrees/Device-Detection/archive/v%{fiftyoned_version}.tar.gz
+Source301:         https://github.com/leev/ngx_http_geoip2_module/archive/%{geoip2_version}/ngx_http_geoip2_module-%{geoip2_version}.tar.gz
+Source302:         https://github.com/nbs-system/naxsi/archive/%{naxsi_version}/naxsi-%{naxsi_version}.tar.gz
+Source303:         https://github.com/phusion/passenger/archive/release-%{passenger_version}/passenger-release-%{passenger_version}.tar.gz
+Source304:         https://github.com/google/ngx_brotli/archive/v%{brotli_version}/ngx_brotli-%{brotli_version}.tar.gz
+Source305:         https://github.com/51Degrees/Device-Detection/archive/v%{fiftyoned_version}/Device-Detection-%{fiftyoned_version}.tar.gz
 
 # removes -Werror in upstream build scripts.  -Werror conflicts with
 # -D_FORTIFY_SOURCE=2 causing warnings to turn into errors.
-Patch0:            nginx-auto-cc-gcc.patch
+Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 
+# downstream patch - fix PIDFile race condition (rhbz#1869026)
+# rejected upstream: https://trac.nginx.org/nginx/ticket/1897
+Patch1:            0002-fix-PIDFile-handling.patch
+
+BuildRequires:     make
+BuildRequires:     gcc
+BuildRequires:     gnupg2
 %if 0%{?with_gperftools}
 BuildRequires:     gperftools-devel
 %endif
+%if 0%{?fedora} || 0%{?rhel} >= 8
 BuildRequires:     openssl-devel
+%else
+BuildRequires:     openssl11-devel
+%endif
 BuildRequires:     pcre-devel
 BuildRequires:     zlib-devel
 
 Requires:          nginx-filesystem = %{epoch}:%{version}-%{release}
-
-#if 0%{?rhel} || 0%{?fedora} < 24
-# Introduced at 1:1.10.0-1 to ease upgrade path. To be removed later.
-#Requires:          nginx-all-modules = %{epoch}:%{version}-%{release}
-#endif
+%if 0%{?el7}
+# centos-logos el7 does not provide 'system-indexhtml'
+#Requires:          system-logos redhat-indexhtml
+# need to remove epel7 geoip sub-package, doesn't work anymore
+# https://bugzilla.redhat.com/show_bug.cgi?id=1576034
+# https://bugzilla.redhat.com/show_bug.cgi?id=1664957
+Obsoletes:         nginx-mod-http-geoip <= 1:1.16
+#else
+#Requires:          system-logos-httpd
+%endif
 
 Requires:          openssl
 Requires:          pcre
@@ -91,17 +112,14 @@ Requires(pre):     nginx-filesystem
 Requires:          nginx-mimetypes
 %endif
 Provides:          webserver
+%if 0%{?fedora} || 0%{?rhel} >= 8
+Recommends:        logrotate
+%endif
 
-%if 0%{?with_systemd}
 BuildRequires:     systemd
 Requires(post):    systemd
 Requires(preun):   systemd
 Requires(postun):  systemd
-%else
-Requires(post):    chkconfig
-Requires(preun):   chkconfig, initscripts
-Requires(postun):  initscripts
-%endif
 
 %description
 Nginx is a web server and a reverse proxy server for HTTP, SMTP, POP3 and
@@ -109,11 +127,12 @@ IMAP protocols, with a strong focus on high concurrency, performance and low
 memory usage.
 
 %package all-modules
-Group:             System Environment/Daemons
 Summary:           A meta package that installs all available Nginx modules
 BuildArch:         noarch
 
+%if %{with geoip}
 Requires:          nginx-mod-http-geoip = %{epoch}:%{version}-%{release}
+%endif
 Requires:          nginx-mod-http-image-filter = %{epoch}:%{version}-%{release}
 Requires:          nginx-mod-http-perl = %{epoch}:%{version}-%{release}
 Requires:          nginx-mod-http-xslt-filter = %{epoch}:%{version}-%{release}
@@ -121,18 +140,9 @@ Requires:          nginx-mod-mail = %{epoch}:%{version}-%{release}
 Requires:          nginx-mod-stream = %{epoch}:%{version}-%{release}
 
 %description all-modules
-%{summary}.
-%if 0%{?rhel}
-The main nginx package depends on this to ease the upgrade path. After a grace
-period of several months, modules will become optional.
-%endif
-%if 0%{?fedora} && 0%{?fedora} < 24
-The main nginx package depends on this to ease the upgrade path. Starting from
-Fedora 24, modules are optional.
-%endif
+Meta package that installs all available nginx modules.
 
 %package filesystem
-Group:             System Environment/Daemons
 Summary:           The basic directory layout for the Nginx server
 BuildArch:         noarch
 Requires(pre):     shadow-utils
@@ -143,7 +153,6 @@ for the Nginx server including the correct permissions for the
 directories.
 
 %package mod-http-51D
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP 51Degrees module
 Requires:          nginx = %{epoch}:%{version}-%{release}
 
@@ -151,7 +160,6 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %{summary}.
 
 %package mod-http-brotli
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP brotli module
 BuildRequires:     brotli-devel
 Requires:          nginx = %{epoch}:%{version}-%{release}
@@ -159,8 +167,8 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %description mod-http-brotli
 %{summary}.
 
+%if %{with geoip}
 %package mod-http-geoip
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP geoip module
 BuildRequires:     GeoIP-devel
 Requires:          nginx = %{epoch}:%{version}-%{release}
@@ -168,9 +176,9 @@ Requires:          GeoIP
 
 %description mod-http-geoip
 %{summary}.
+%endif
 
 %package mod-http-geoip2
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP geoip2 module
 BuildRequires:     libmaxminddb-devel
 Requires:          nginx = %{epoch}:%{version}-%{release}
@@ -179,7 +187,6 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %{summary}.
 
 %package mod-http-image-filter
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP image filter module
 BuildRequires:     gd-devel
 Requires:          nginx = %{epoch}:%{version}-%{release}
@@ -189,7 +196,6 @@ Requires:          gd
 %{summary}.
 
 %package mod-http-naxsi
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP naxsi module
 Requires:          nginx = %{epoch}:%{version}-%{release}
 
@@ -197,7 +203,6 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %{summary}.
 
 %package mod-http-passenger
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP passenger module
 BuildRequires:     rubygem-rake
 BuildRequires:     libcurl-devel
@@ -208,21 +213,20 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %{summary}. (version %{passenger_version})
 
 %package mod-http-perl
-Group:             System Environment/Daemons
 Summary:           Nginx HTTP perl module
 BuildRequires:     perl-devel
-%if 0%{?fedora} >= 24
+%if 0%{?fedora} >= 24 || 0%{?rhel} >= 7
 BuildRequires:     perl-generators
 %endif
 BuildRequires:     perl(ExtUtils::Embed)
 Requires:          nginx = %{epoch}:%{version}-%{release}
 Requires:          perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:          perl(constant)
 
 %description mod-http-perl
 %{summary}.
 
 %package mod-http-xslt-filter
-Group:             System Environment/Daemons
 Summary:           Nginx XSLT module
 BuildRequires:     libxslt-devel
 Requires:          nginx = %{epoch}:%{version}-%{release}
@@ -231,7 +235,6 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %{summary}.
 
 %package mod-mail
-Group:             System Environment/Daemons
 Summary:           Nginx mail modules
 Requires:          nginx = %{epoch}:%{version}-%{release}
 
@@ -239,7 +242,6 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %{summary}.
 
 %package mod-stream
-Group:             System Environment/Daemons
 Summary:           Nginx stream modules
 Requires:          nginx = %{epoch}:%{version}-%{release}
 
@@ -247,7 +249,6 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %{summary}.
 
 %package mod-stream-geoip2
-Group:             System Environment/Daemons
 Summary:           Nginx stream geoip2 module
 BuildRequires:     libmaxminddb-devel
 Requires:          nginx-mod-stream
@@ -257,24 +258,26 @@ Requires:          nginx-mod-stream
 
 
 %prep
-%setup -q -a 305 -a 306 -a 310
-%patch0 -p0
+# Combine all keys from upstream into one file
+cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
+#{gpgverify} --keyring='%{_builddir}/%{name}.gpg' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%autosetup -p1
+# https://bugs.centos.org/view.php?id=17300
+%setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 sed -i -e 's#KillMode=.*#KillMode=process#g' nginx.service
 sed -i -e 's#PROFILE=SYSTEM#HIGH:!aNULL:!MD5#' nginx.conf
 %endif
-%if ! 0%{?with_systemd}
-sed -i -e 's# /run# /var/run#' nginx.conf
+
+%if 0%{?rhel} == 7
+sed \
+  -e 's|\(ngx_feature_path=\)$|\1%{_includedir}/openssl11|' \
+  -e 's|\(ngx_feature_libs="\)|\1-L%{_libdir}/openssl11 |' \
+  -i auto/lib/openssl/conf
 %endif
 
-install -D -m 0644 %{SOURCE302} geoip2/ngx_http_geoip2_module.c
-install -D -m 0644 %{SOURCE303} geoip2/ngx_stream_geoip2_module.c
-install -D -m 0644 %{SOURCE304} geoip2/config
-install -D -m 0644 %{SOURCE307} brotli/ngx_http_brotli_filter_module.c
-install -D -m 0644 %{SOURCE308} brotli/ngx_http_brotli_static_module.c
-install -D -m 0644 %{SOURCE309} brotli/config
 pushd Device-Detection-%{fiftyoned_version}/nginx
   cp module_conf/trie_config 51Degrees_module/config
   mkdir -p 51Degrees_module/src/trie
@@ -282,13 +285,21 @@ pushd Device-Detection-%{fiftyoned_version}/nginx
   cp ../src/trie/51Degrees.h 51Degrees_module/src/trie/
 popd
 
+
 %build
 # nginx does not utilize a standard configure script.  It has its own
 # and the standard configure options cause the nginx configure script
 # to error out.  This is is also the reason for the DESTDIR environment
 # variable.
 export DESTDIR=%{buildroot}
-./configure \
+# So the perl module finds its symbols:
+nginx_ldopts="$RPM_LD_FLAGS -Wl,-E"
+%if 0%{?rhel} < 8
+# So the passenger module finds openssl 1.1
+export EXTRA_CXXFLAGS="-I%{_includedir}/openssl11"
+export EXTRA_LDFLAGS="-L%{_libdir}/openssl11"
+%endif
+if ! ./configure \
     --prefix=%{_datadir}/nginx \
     --sbin-path=%{_sbindir}/nginx \
     --modules-path=%{_libdir}/nginx/modules \
@@ -300,48 +311,51 @@ export DESTDIR=%{buildroot}
     --http-fastcgi-temp-path=%{_localstatedir}/lib/nginx/tmp/fastcgi \
     --http-uwsgi-temp-path=%{_localstatedir}/lib/nginx/tmp/uwsgi \
     --http-scgi-temp-path=%{_localstatedir}/lib/nginx/tmp/scgi \
-%if 0%{?with_systemd}
     --pid-path=/run/nginx.pid \
     --lock-path=/run/lock/subsys/nginx \
-%else
-    --pid-path=%{_localstatedir}/run/nginx.pid \
-    --lock-path=%{_localstatedir}/lock/subsys/nginx \
-%endif
     --user=%{nginx_user} \
     --group=%{nginx_user} \
-    --add-dynamic-module=naxsi-%{naxsi_version}/naxsi_src \
-%if %{with passenger}
-    --add-dynamic-module=passenger-%{passenger_version}/src/nginx_module \
-%endif
+    --with-compat \
+    --with-debug \
 %if 0%{?with_aio}
     --with-file-aio \
 %endif
-    --with-ipv6 \
-    --with-http_ssl_module \
-    --with-http_v2_module \
-    --with-http_realip_module \
+%if 0%{?with_gperftools}
+    --with-google_perftools_module \
+%endif
     --with-http_addition_module \
-    --with-http_xslt_module=dynamic \
-    --with-http_image_filter_module=dynamic \
-    --with-http_geoip_module=dynamic \
-    --with-http_sub_module \
+    --with-http_auth_request_module \
     --with-http_dav_module \
+    --with-http_degradation_module \
     --with-http_flv_module \
-    --with-http_mp4_module \
+%if %{with geoip}
+    --with-http_geoip_module=dynamic \
+%endif
     --with-http_gunzip_module \
     --with-http_gzip_static_module \
-    --with-http_random_index_module \
-    --with-http_secure_link_module \
-    --with-http_degradation_module \
-    --with-http_slice_module \
-    --with-http_stub_status_module \
+    --with-http_image_filter_module=dynamic \
+    --with-http_mp4_module \
     --with-http_perl_module=dynamic \
-    --with-http_auth_request_module \
-%if %{with brotli}
-    --add-dynamic-module=brotli \
-%endif
+    --with-http_random_index_module \
+    --with-http_realip_module \
+    --with-http_secure_link_module \
+    --with-http_slice_module \
+    --with-http_ssl_module \
+    --with-http_stub_status_module \
+    --with-http_sub_module \
+    --with-http_v2_module \
+    --with-http_xslt_module=dynamic \
 %if %{with geoip2}
-    --add-dynamic-module=geoip2 \
+    --add-dynamic-module=ngx_http_geoip2_module-%{geoip2_version} \
+%endif
+%if %{with naxsi}
+    --add-dynamic-module=naxsi-%{naxsi_version}/naxsi_src \
+%endif
+%if %{with passenger}
+    --add-dynamic-module=passenger-release-%{passenger_version}/src/nginx_module \
+%endif
+%if %{with brotli}
+    --add-dynamic-module=ngx_brotli-%{brotli_version} \
 %endif
 %if %{with_51D}
     --add-dynamic-module=Device-Detection-%{fiftyoned_version}/nginx/51Degrees_module \
@@ -352,32 +366,32 @@ export DESTDIR=%{buildroot}
     --with-pcre-jit \
     --with-stream=dynamic \
     --with-stream_ssl_module \
-%if 0%{?with_gperftools}
-    --with-google_perftools_module \
-%endif
-    --with-debug \
+    --with-stream_ssl_preread_module \
+    --with-threads \
+%if %{with_51D}
     --with-cc-opt="%{optflags} $(pcre-config --cflags) -DFIFTYONEDEGREES_TRIE -DFIFTYONEDEGREES_NO_THREADING" \
-    --with-ld-opt="$RPM_LD_FLAGS -Wl,-E" # so the perl module finds its symbols
+%else
+    --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
+%endif
+    --with-ld-opt="$nginx_ldopts"; then
+  : configure failed
+  cat objs/autoconf.err
+  exit 1
+fi
 
-make %{?_smp_mflags}
+%make_build
 
 
 %install
-make install DESTDIR=%{buildroot} INSTALLDIRS=vendor
+%make_install INSTALLDIRS=vendor
 
 find %{buildroot} -type f -name .packlist -exec rm -f '{}' \;
 find %{buildroot} -type f -name perllocal.pod -exec rm -f '{}' \;
 find %{buildroot} -type f -empty -exec rm -f '{}' \;
 find %{buildroot} -type f -iname '*.so' -exec chmod 0755 '{}' \;
 
-%if 0%{?with_systemd}
 install -p -D -m 0644 ./nginx.service \
     %{buildroot}%{_unitdir}/nginx.service
-%else
-install -p -D -m 0755 %{SOURCE15} \
-    %{buildroot}%{_initrddir}/nginx
-%endif
-
 install -p -D -m 0644 %{SOURCE11} \
     %{buildroot}%{_sysconfdir}/logrotate.d/nginx
 
@@ -397,10 +411,16 @@ install -p -d -m 0755 %{buildroot}%{_libdir}/nginx/modules
 
 install -p -m 0644 ./nginx.conf \
     %{buildroot}%{_sysconfdir}/nginx
-install -p -m 0644 %{SOURCE100} \
+
+install -p -m 0644 %{SOURCE102} \
     %{buildroot}%{_datadir}/nginx/html
-install -p -m 0644 %{SOURCE101} %{SOURCE102} \
-    %{buildroot}%{_datadir}/nginx/html
+ln -s nginx-logo.png %{buildroot}%{_datadir}/nginx/html/poweredby.png
+mkdir -p %{buildroot}%{_datadir}/nginx/html/icons
+
+# Symlink for the powered-by-$DISTRO image:
+ln -s ../../../pixmaps/poweredby.png \
+      %{buildroot}%{_datadir}/nginx/html/icons/poweredby.png
+
 install -p -m 0644 %{SOURCE103} %{SOURCE104} \
     %{buildroot}%{_datadir}/nginx/html
 
@@ -408,13 +428,13 @@ install -p -m 0644 %{SOURCE103} %{SOURCE104} \
 rm -f %{buildroot}%{_sysconfdir}/nginx/mime.types
 %endif
 
-install -p -D -m 0644 %{_builddir}/nginx-%{version}/man/nginx.8 \
+install -p -D -m 0644 %{_builddir}/nginx-%{version}/objs/nginx.8 \
     %{buildroot}%{_mandir}/man8/nginx.8
 
 install -p -D -m 0755 %{SOURCE13} %{buildroot}%{_bindir}/nginx-upgrade
 install -p -D -m 0644 %{SOURCE14} %{buildroot}%{_mandir}/man8/nginx-upgrade.8
 
-for i in ftdetect indent syntax; do
+for i in ftdetect ftplugin indent syntax; do
     install -p -D -m644 contrib/vim/${i}/nginx.vim \
         %{buildroot}%{_datadir}/vim/vimfiles/${i}/nginx.vim
 done
@@ -429,16 +449,20 @@ echo 'load_module "%{_libdir}/nginx/modules/ngx_http_brotli_filter_module.so";' 
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_brotli_static_module.so";' \
     >> %{buildroot}%{_datadir}/nginx/modules/mod-http-brotli.conf
 %endif
+%if %{with geoip}
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_geoip_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-http-geoip.conf
+%endif
 %if %{with geoip2}
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_geoip2_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-http-geoip2.conf
 %endif
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_image_filter_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-http-image-filter.conf
+%if %{with naxsi}
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_naxsi_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-http-naxsi.conf
+%endif
 %if %{with passenger}
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_passenger_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-http-passenger.conf
@@ -456,8 +480,10 @@ echo 'load_module "%{_libdir}/nginx/modules/ngx_stream_geoip2_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-stream-geoip2.conf
 %endif
 
+%if %{with naxsi}
 install -p -D -m 0644 naxsi-%{naxsi_version}/naxsi_config/naxsi_core.rules \
     %{buildroot}%{_sysconfdir}/nginx/
+%endif
 
 %pre filesystem
 getent group %{nginx_user} > /dev/null || groupadd -r %{nginx_user}
@@ -467,13 +493,7 @@ getent passwd %{nginx_user} > /dev/null || \
 exit 0
 
 %post
-%if 0%{?with_systemd}
 %systemd_post nginx.service
-%else
-if [ $1 -eq 1 ]; then
-    /sbin/chkconfig --add %{name}
-fi
-%endif
 
 %post mod-http-51D
 if [ $1 -eq 1 ]; then
@@ -485,10 +505,12 @@ if [ $1 -eq 1 ]; then
     /usr/bin/systemctl reload nginx.service >/dev/null 2>&1 || :
 fi
 
+%if %{with geoip}
 %post mod-http-geoip
 if [ $1 -eq 1 ]; then
     /usr/bin/systemctl reload nginx.service >/dev/null 2>&1 || :
 fi
+%endif
 
 %post mod-http-geoip2
 if [ $1 -eq 1 ]; then
@@ -536,19 +558,10 @@ if [ $1 -eq 1 ]; then
 fi
 
 %preun
-%if 0%{?with_systemd}
 %systemd_preun nginx.service
-%else
-if [ $1 -eq 0 ]; then
-    /sbin/service %{name} stop >/dev/null 2>&1 || :
-    /sbin/chkconfig --del %{name}
-fi
-%endif
 
 %postun
-%if 0%{?with_systemd}
 %systemd_postun nginx.service
-%endif
 if [ $1 -ge 1 ]; then
     /usr/bin/nginx-upgrade >/dev/null 2>&1 || :
 fi
@@ -563,16 +576,13 @@ fi
 %{_bindir}/nginx-upgrade
 %{_sbindir}/nginx
 %{_datadir}/vim/vimfiles/ftdetect/nginx.vim
+%{_datadir}/vim/vimfiles/ftplugin/nginx.vim
 %{_datadir}/vim/vimfiles/syntax/nginx.vim
 %{_datadir}/vim/vimfiles/indent/nginx.vim
 %{_mandir}/man3/nginx.3pm*
 %{_mandir}/man8/nginx.8*
 %{_mandir}/man8/nginx-upgrade.8*
-%if 0%{?with_systemd}
 %{_unitdir}/nginx.service
-%else
-%{_initrddir}/nginx
-%endif
 %config(noreplace) %{_sysconfdir}/nginx/fastcgi.conf
 %config(noreplace) %{_sysconfdir}/nginx/fastcgi.conf.default
 %config(noreplace) %{_sysconfdir}/nginx/fastcgi_params
@@ -591,9 +601,9 @@ fi
 %config(noreplace) %{_sysconfdir}/nginx/uwsgi_params.default
 %config(noreplace) %{_sysconfdir}/nginx/win-utf
 %config(noreplace) %{_sysconfdir}/logrotate.d/nginx
-%attr(700,%{nginx_user},%{nginx_user}) %dir %{_localstatedir}/lib/nginx
-%attr(700,%{nginx_user},%{nginx_user}) %dir %{_localstatedir}/lib/nginx/tmp
-%attr(700,%{nginx_user},%{nginx_user}) %dir %{_localstatedir}/log/nginx
+%attr(770,%{nginx_user},root) %dir %{_localstatedir}/lib/nginx
+%attr(770,%{nginx_user},root) %dir %{_localstatedir}/lib/nginx/tmp
+%dir %{_localstatedir}/log/nginx
 %dir %{_libdir}/nginx/modules
 
 #files all-modules
@@ -604,10 +614,8 @@ fi
 %dir %{_sysconfdir}/nginx
 %dir %{_sysconfdir}/nginx/conf.d
 %dir %{_sysconfdir}/nginx/default.d
-%if 0%{?with_systemd}
 %dir %{_sysconfdir}/systemd/system/nginx.service.d
 %dir %{_unitdir}/nginx.service.d
-%endif
 
 %if %{with 51D}
 %files mod-http-51D
@@ -622,9 +630,11 @@ fi
 %{_libdir}/nginx/modules/ngx_http_brotli_static_module.so
 %endif
 
+%if %{with geoip}
 %files mod-http-geoip
 %{_datadir}/nginx/modules/mod-http-geoip.conf
 %{_libdir}/nginx/modules/ngx_http_geoip_module.so
+%endif
 
 %if %{with geoip2}
 %files mod-http-geoip2
@@ -636,10 +646,12 @@ fi
 %{_datadir}/nginx/modules/mod-http-image-filter.conf
 %{_libdir}/nginx/modules/ngx_http_image_filter_module.so
 
+%if %{with naxsi}
 %files mod-http-naxsi
 %config(noreplace) %{_sysconfdir}/nginx/naxsi_core.rules
 %{_datadir}/nginx/modules/mod-http-naxsi.conf
 %{_libdir}/nginx/modules/ngx_http_naxsi_module.so
+%endif
 
 %if %{with passenger}
 %files mod-http-passenger
@@ -674,40 +686,136 @@ fi
 
 
 %changelog
-* Mon May 18 2020 Matthias Saou <matthias@saou.eu> 1:1.18.1-0.ex1
-- Update to 1.18.0.
+* Thu Apr 22 2021 Matthias Saou <matthias@saou.eu> 1:1.20.0-2.ex1
+- Rebase to latest Fedora rawhide package.
+- Keep bundled default page, to avoid pulling in logo and index packages.
+- Update naxsi module to 1.3.
+- Update GeoIP2 module to 3.3.
+- Update Passenger to 6.0.8.
+- Update Brotli to Google's code, version 1.0.0rc.
 
-* Wed Dec 11 2019 Matthias Saou <matthias@saou.eu> 1:1.16.1-0.ex2
-- Update geoip2 module to support auto_reload.
+* Wed Apr 21 2021 Felix Kaechele <heffer@fedoraproject.org> - 1:1.20.0-2
+- sync rawhide and EPEL7 spec files again
+- systemd service reload now checks config file (rhbz#1565377)
+- drop nginx requirement on nginx-all-modules (rhbz#1708799)
+- let nginx handle log creation on logrotate (rhbz#1683388)
+- have log directory owned by root (rhbz#1390183, CVE-2016-1247)
+- remove obsolete --with-ipv6 (src PR#8)
+- correction: pcre2 is actually not supported by nginx, reintroduce pcre
 
-* Thu Aug 29 2019 Matthias Saou <matthias@saou.eu> 1:1.16.1-0.ex1
-- Update to 1.16.1.
+* Wed Apr 21 2021 Felix Kaechele <heffer@fedoraproject.org> - 1:1.20.0-1
+- update to 1.20.0
+- sync with mainline spec file
+- order configure options alphabetically for easier comparinggit
+- add --with-compat option (rhbz#1834452)
+- add patch to fix PIDFile race condition (rhbz#1869026)
+- use pcre2 instead of pcre (rhbz#1938984)
+- add Wants=network-online.target to systemd unit (rhbz#1943779)
 
-* Thu Mar 28 2019 Matthias Saou <matthias@saou.eu> 1:1.14.2-0.ex4
-- Add 51D module.
+* Mon Feb 22 2021 Lubos Uhliarik <luhliari@redhat.com> - 1:1.18.0-5
+- Resolves: #1931402 - drop gperftools module
 
-* Thu Dec 13 2018 Matthias Saou <matthias@saou.eu> 1:1.14.2-0.ex2
-- Update GeoIP2 module files.
-- Add Google's Brotli compression support.
+* Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.18.0-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
 
-* Wed Dec  5 2018 Matthias Saou <matthias@saou.eu> 1:1.14.2-0.ex1
-- Update to 1.14.2.
+* Tue Jul 28 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.18.0-3
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_33_Mass_Rebuild
 
-* Wed Nov  7 2018 Matthias Saou <matthias@saou.eu> 1:1.14.1-0.ex1
-- Update to 1.14.1.
+* Mon Jun 22 2020 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.18.0-2
+- Perl 5.32 rebuild
 
-* Thu Sep 20 2018 Matthias Saou <matthias@saou.eu> 1:1.14.0-0.ex4
-- Fix RHEL6 run directory.
-- Include Passenger version in sub-package description.
+* Fri Apr 24 2020 Felix Kaechele <heffer@fedoraproject.org> - 1:1.18.0-1
+- Update to 1.18.0
+- Increased types_hash_max_size to 4096 in default config
+- Add gpg source verification
+- Add Recommends: logrotate
+- Drop location / from default config (rhbz#1564768)
+- Drop default_sever from default config (rhbz#1373822)
 
-* Tue Sep 18 2018 Matthias Saou <matthias@saou.eu> 1:1.14.0-0.ex2
-- Include Phusion Passenger module.
+* Wed Jan 29 2020 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.16.1-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
-* Tue Jul 24 2018 Matthias Saou <matthias@saou.eu> 1:1.14.0-0.ex1
-- Update to 1.14.0.
+* Sun Sep 15 2019 Warren Togami <warren@blockstream.com>
+- add conditionals for EPEL7, see rhbz#1750857
 
-* Tue Nov  7 2017 Matthias Saou <matthias@saou.eu> 1:1.12.2-0.ex1
-- Update to 1.12.2, rebase on latest Fedora.
+* Tue Aug 13 2019 Jamie Nguyen <jamielinux@fedoraproject.org> - 1:1.16.1-1
+- Update to upstream release 1.16.1
+- Fixes CVE-2019-9511, CVE-2019-9513, CVE-2019-9516
+
+* Thu Jul 25 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.16.0-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
+
+* Thu May 30 2019 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.16.0-4
+- Perl 5.30 rebuild
+
+* Tue May 14 2019 Stephen Gallagher <sgallagh@redhat.com> - 1.16.0-3
+- Move to common default index.html
+- Resolves: rhbz#1636235
+
+* Tue May 07 2019 Jamie Nguyen <jamielinux@fedoraproject.org> - 1:1.16.0-2
+- Add missing directory for vim plugin
+
+* Fri Apr 26 2019 Jamie Nguyen <jamielinux@fedoraproject.org> - 1:1.16.0-1
+- Update to upstream release 1.16.0
+
+* Mon Mar 04 2019 Jamie Nguyen <jamielinux@fedoraproject.org> - 1:1.15.9-1
+- Update to upstream release 1.15.9
+- Enable ngx_stream_ssl_preread module
+- Remove redundant conditionals
+
+* Fri Feb 01 2019 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.14.1-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
+
+* Mon Jan 14 2019 Björn Esser <besser82@fedoraproject.org> - 1:1.14.1-4
+- Rebuilt for libcrypt.so.2 (#1666033)
+
+* Tue Dec 11 2018 Joe Orton <jorton@redhat.com> - 1:1.14.1-3
+- fix unexpanded paths in nginx(8)
+
+* Tue Nov 20 2018 Luboš Uhliarik <luhliari@redhat.com> - 1:1.14.1-2
+- new version 1.14.1
+- Resolves: #1584426 - Upstream Nginx 1.14.0 is now available
+- Resolves: #1647255 - CVE-2018-16845 nginx: Denial of service and memory
+  disclosure via mp4 module
+- Resolves: #1647259 - CVE-2018-16843 nginx: Excessive memory consumption
+  via flaw in HTTP/2 implementation
+- Resolves: #1647258 - CVE-2018-16844 nginx: Excessive CPU usage via flaw
+  in HTTP/2 implementation
+
+* Mon Aug 06 2018 Luboš Uhliarik <luhliari@redhat.com> - 1:1.12.1-14
+- add requires on perl(constant) for mod-http-perl
+
+* Mon Jul 30 2018 Luboš Uhliarik <luhliari@redhat.com> - 1:1.12.1-13
+- don't build with geoip by default
+
+* Thu Jul 19 2018 Joe Orton <jorton@redhat.com> - 1:1.12.1-12
+- add build conditional for geoip support
+
+* Mon Jul 16 2018 Tadej Janež <tadej.j@nez.si> - 1:1.12.1-11
+- Add gcc to BuildRequires to account for
+  https://fedoraproject.org/wiki/Changes/Remove_GCC_from_BuildRoot
+
+* Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.1-10
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
+
+* Wed Jun 27 2018 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.1-9
+- Perl 5.28 rebuild
+
+* Mon May 14 2018 Luboš Uhliarik <luhliari@redhat.com> - 1:1.12.1-8
+- Related: #1573942 - nginx fails on start
+
+* Wed May 02 2018 Luboš Uhliarik <luhliari@redhat.com> - 1:1.12.1-7
+- Resolves: #1573942 - nginx fails on start
+
+* Thu Feb 08 2018 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.1-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Wed Jan 24 2018 Björn Esser <besser82@fedoraproject.org> - 1:1.12.1-5
+- Add patch to apply glibc bugfix if really needed only
+- Disable strict symbol checks in the link editor
+
+* Sat Jan 20 2018 Björn Esser <besser82@fedoraproject.org> - 1:1.12.1-4
+- Rebuilt for switch to libxcrypt
 
 * Tue Oct 24 2017 Joe Orton <jorton@redhat.com> - 1:1.12.1-3
 - rebuild
@@ -722,42 +830,20 @@ fi
 * Thu Aug 03 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.0-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
 
-* Thu Aug  3 2017 Matthias Saou <matthias@saou.eu> 1:1.12.1-0.ex2
-- Rebuilt against RHEL 7.4 to get openssl 1.0.2 and ALPN support for http/2.
-
 * Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 1:1.12.0-3
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
+
+* Sun Jun 04 2017 Jitka Plesnikova <jplesnik@redhat.com> - 1:1.12.0-2
+- Perl 5.26 rebuild
 
 * Tue May 30 2017 Luboš Uhliarik <luhliari@redhat.com> - 1:1.12.0-1
 - new version 1.12.0
 
-* Tue May 16 2017 Matthias Saou <matthias@saou.eu> 1:1.12.1-0.ex1
-- Update to 1.12.1.
-- Remove DeviceAtlas module.
-
-* Tue May 16 2017 Matthias Saou <matthias@saou.eu> 1:1.12.0-0.ex2
-- Fix stream-geoip2 module's missing stream module dependency.
-
-* Tue May 16 2017 Matthias Saou <matthias@saou.eu> 1:1.12.0-0.ex1
-- Update to 1.12.0.
-- Update GeoIP2 patch to the latest which includes stream support.
-- Drop crappy ip2location module (segfaults).
-
-* Mon Mar 20 2017 Matthias Saou <matthias@saou.eu> 1:1.10.3-0.ex3
-- Include ip2location module.
-
 * Wed Feb  8 2017 Joe Orton <jorton@redhat.com> - 1:1.10.3-1
 - update to upstream release 1.10.3
 
-* Wed Feb  1 2017 Matthias Saou <matthias@saou.eu> 1:1.10.3-0
-- Update to 1.10.3.
-
 * Mon Oct 31 2016 Jamie Nguyen <jamielinux@fedoraproject.org> - 1:1.10.2-1
 - update to upstream release 1.10.2
-
-* Wed Oct 19 2016 Matthias Saou <matthias@saou.eu> 1:1.10.2-0
-- Update to 1.10.2, remove upstreamed http2 patch.
-- Update naxsi to 0.55.1, remove upstreamed http2 patch.
 
 * Tue May 31 2016 Jamie Nguyen <jamielinux@fedoraproject.org> - 1:1.10.1-1
 - update to upstream release 1.10.1
@@ -798,14 +884,6 @@ fi
 
 * Wed Aug 12 2015 Nikos Mavrogiannopoulos <nmav@redhat.com> - 1:1.8.0-11
 - nginx.conf: added commented-out SSL configuration directives (#1179232)
-
-* Wed Jul 29 2015 Matthias Saou <matthias@saou.eu> 1:1.8.0-1.ex2
-- Include naxsi module.
-
-* Wed Jul 08 2015 Matthias Saou <matthias@saou.eu> 1:1.8.0-1.ex1
-- Rebase on current Fedora package, keeping systemd conditionals.
-- Include deviceatlas and geoip2 modules.
-- Fix logrotate by adding /var/run/nginx.pid to HUP line.
 
 * Fri Jul 03 2015 Jamie Nguyen <jamielinux@fedoraproject.org> - 1:1.8.0-10
 - switch back to /bin/kill in logrotate script due to SELinux denials
