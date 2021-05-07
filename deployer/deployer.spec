@@ -2,30 +2,31 @@
 
 Name:          deployer
 Version:       6.8.0
-Summary:       A deployment tool for PHP
+Summary:       Deployment tool with support for popular PHP frameworks
 Release:       1
 License:       MIT
 URL:           https://deployer.org/
 Source0:       https://deployer.org/releases/v%{version}/deployer.phar
-Source1:       https://github.com/deployphp/recipes/archive/%{recipes_ver}.tar.gz
+Source1:       https://github.com/deployphp/recipes/archive/%{recipes_ver}/recipes-%{recipes_ver}.tar.gz
 BuildArch:     noarch
 BuildRequires: php-cli >= 7.2
 
 %description
-A deployment tool for PHP.
+Deployer is a cli tool for deployment of any PHP applications, including
+frameworks such as Laravel, Symfony, Zend Framework and many more.
 
 
 %prep
 %setup -q -T -c -a 1
+mkdir contrib-recipes
+mv recipes-%{recipes_ver}/recipe contrib-recipes/
 cp %{SOURCE0} .
-cp /etc/php.ini .
-sed -i 's/^;phar.readonly = On/phar.readonly = Off/' php.ini
+# Required setting to be allowed to modify phar files
+sed 's/^;phar.readonly = On/phar.readonly = Off/' /etc/php.ini > php.ini
 
 
 %build
-mkdir recipes
-mv recipes-%{recipes_ver}/recipe recipes
-php -c php.ini /usr/bin/phar add -f deployer.phar recipes
+php -c php.ini /usr/bin/phar add -f deployer.phar contrib-recipes
 
 
 %install
@@ -39,5 +40,4 @@ install -D -p -m 755 deployer.phar %{buildroot}%{_bindir}/%{name}
 %changelog
 * Thu May 06 2021 Michał Lisowski <michal@exads.com> - 6.8.0-1
 - Initial RPM release
-
 
