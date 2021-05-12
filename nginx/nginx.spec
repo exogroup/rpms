@@ -41,7 +41,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.20.0
-Release:           2%{?dist}.ex1
+Release:           2%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -603,7 +603,7 @@ fi
 %config(noreplace) %{_sysconfdir}/logrotate.d/nginx
 %attr(770,%{nginx_user},root) %dir %{_localstatedir}/lib/nginx
 %attr(770,%{nginx_user},root) %dir %{_localstatedir}/lib/nginx/tmp
-%dir %{_localstatedir}/log/nginx
+%attr(700,%{nginx_user},root) %dir %{_localstatedir}/log/nginx
 %dir %{_libdir}/nginx/modules
 
 #files all-modules
@@ -686,6 +686,9 @@ fi
 
 
 %changelog
+* Wed May 12 2021 Matthias Saou <matthias@saou.eu> 1:1.20.0-2.ex2
+- Revert the Fedora owner change of log dir back to nginx, it broke logging.
+
 * Thu Apr 22 2021 Matthias Saou <matthias@saou.eu> 1:1.20.0-2.ex1
 - Rebase to latest Fedora rawhide package.
 - Keep bundled default page, to avoid pulling in logo and index packages.
