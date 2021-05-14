@@ -3,13 +3,14 @@
 Name:          deployer
 Version:       6.8.0
 Summary:       Deployment tool with support for popular PHP frameworks
-Release:       1
+Release:       2
 License:       MIT
 URL:           https://deployer.org/
 Source0:       https://deployer.org/releases/v%{version}/deployer.phar
 Source1:       https://github.com/deployphp/recipes/archive/%{recipes_ver}/recipes-%{recipes_ver}.tar.gz
 BuildArch:     noarch
 BuildRequires: php-cli >= 7.2
+Requires:      php-cli >= 7.2
 
 %description
 Deployer is a cli tool for deployment of any PHP applications, including
@@ -38,6 +39,9 @@ install -D -p -m 755 deployer.phar %{buildroot}%{_bindir}/%{name}
 
 
 %changelog
+* Fri May 14 2021 Michał Lisowski <michal@exads.com> - 6.8.0-2
+- php-cli is required at runtime
+
 * Thu May 06 2021 Michał Lisowski <michal@exads.com> - 6.8.0-1
 - Initial RPM release
 
