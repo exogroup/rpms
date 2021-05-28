@@ -31,17 +31,18 @@
 %global naxsi_version 1.3
 %global passenger_version 6.0.8
 %global brotli_version 1.0.0rc
-%global fiftyoned_version 3.2.20.4
+%global fiftyoned_version 4.3.0
+%global fiftyoned_cxx_version 4.2.3
 %bcond_without geoip2
 %bcond_without naxsi
-%bcond_without passenger
+%bcond_with    passenger
 %bcond_without brotli
 %bcond_without 51D
 
 Name:              nginx
 Epoch:             1
-Version:           1.20.0
-Release:           2%{?dist}.ex2
+Version:           1.20.1
+Release:           1%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -69,7 +70,9 @@ Source301:         https://github.com/leev/ngx_http_geoip2_module/archive/%{geoi
 Source302:         https://github.com/nbs-system/naxsi/archive/%{naxsi_version}/naxsi-%{naxsi_version}.tar.gz
 Source303:         https://github.com/phusion/passenger/archive/release-%{passenger_version}/passenger-release-%{passenger_version}.tar.gz
 Source304:         https://github.com/google/ngx_brotli/archive/v%{brotli_version}/ngx_brotli-%{brotli_version}.tar.gz
-Source305:         https://github.com/51Degrees/Device-Detection/archive/v%{fiftyoned_version}/Device-Detection-%{fiftyoned_version}.tar.gz
+Source305:         https://github.com/51Degrees/device-detection-nginx/archive/%{fiftyoned_version}/device-detection-nginx-%{fiftyoned_version}.tar.gz
+Source306:         https://github.com/51Degrees/device-detection-cxx/archive/%{fiftyoned_cxx_version}/device-detection-cxx-%{fiftyoned_cxx_version}.tar.gz
+Source307:         https://github.com/51Degrees/common-cxx/archive/%{fiftyoned_cxx_version}/common-cxx-%{fiftyoned_cxx_version}.tar.gz
 
 # removes -Werror in upstream build scripts.  -Werror conflicts with
 # -D_FORTIFY_SOURCE=2 causing warnings to turn into errors.
@@ -78,6 +81,9 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 # downstream patch - fix PIDFile race condition (rhbz#1869026)
 # rejected upstream: https://trac.nginx.org/nginx/ticket/1897
 Patch1:            0002-fix-PIDFile-handling.patch
+
+Source400:         device-detection-cxx-4.2.3-declaration.patch
+Source401:         common-cxx-4.2.3-declaration.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -263,7 +269,9 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 #{gpgverify} --keyring='%{_builddir}/%{name}.gpg' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %autosetup -p1
 # https://bugs.centos.org/view.php?id=17300
-%setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305
+%setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307
+patch -p0 < %{SOURCE400}
+patch -p0 < %{SOURCE401}
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
@@ -278,11 +286,12 @@ sed \
   -i auto/lib/openssl/conf
 %endif
 
-pushd Device-Detection-%{fiftyoned_version}/nginx
-  cp module_conf/trie_config 51Degrees_module/config
-  mkdir -p 51Degrees_module/src/trie
-  cp ../src/trie/51Degrees.c 51Degrees_module/src/trie/
-  cp ../src/trie/51Degrees.h 51Degrees_module/src/trie/
+pushd device-detection-nginx-%{fiftyoned_version}
+  cp module_conf/hash_config 51Degrees_module/config
+  # Get device-detection-cxx source into place (normally sub-module)
+  mv ../device-detection-cxx-%{fiftyoned_cxx_version}/src 51Degrees_module/
+  # Get common-cxx source into place (normally also sub-module)
+  mv ../common-cxx-%{fiftyoned_cxx_version}/* 51Degrees_module/src/common-cxx/
 popd
 
 
@@ -357,8 +366,8 @@ if ! ./configure \
 %if %{with brotli}
     --add-dynamic-module=ngx_brotli-%{brotli_version} \
 %endif
-%if %{with_51D}
-    --add-dynamic-module=Device-Detection-%{fiftyoned_version}/nginx/51Degrees_module \
+%if %{with 51D}
+    --add-dynamic-module=device-detection-nginx-%{fiftyoned_version}/51Degrees_module \
 %endif
     --with-mail=dynamic \
     --with-mail_ssl_module \
@@ -368,8 +377,8 @@ if ! ./configure \
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-threads \
-%if %{with_51D}
-    --with-cc-opt="%{optflags} $(pcre-config --cflags) -DFIFTYONEDEGREES_TRIE -DFIFTYONEDEGREES_NO_THREADING" \
+%if %{with 51D}
+    --with-cc-opt="%{optflags} $(pcre-config --cflags) -DFIFTYONEDEGREES_HASH -DFIFTYONEDEGREES_NO_THREADING" \
 %else
     --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
 %endif
@@ -686,6 +695,13 @@ fi
 
 
 %changelog
+* Thu May 27 2021 Matthias Saou <matthias@saou.eu> 1:1.20.1-1.ex2
+- Update 51Degrees module to the new v4 Hash version.
+- Disable Passenger by default.
+
+* Tue May 25 2021 Felix Kaechele <heffer@fedoraproject.org> - 1:1.20.1-1
+- update to 1.20.1 (fixes CVE-2021-23017)
+
 * Wed May 12 2021 Matthias Saou <matthias@saou.eu> 1:1.20.0-2.ex2
 - Revert the Fedora owner change of log dir back to nginx, it broke logging.
 
