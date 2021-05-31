@@ -1,0 +1,15 @@
+[Unit]
+Description=Lightweight incoming webhook server to run shell commands
+Documentation=https://github.com/adnanh/webhook/wiki
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=webhook
+WorkingDirectory=/etc/webhook
+EnvironmentFile=-/etc/sysconfig/webhook
+ExecStart=/usr/bin/webhook $OPTIONS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
