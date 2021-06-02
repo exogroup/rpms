@@ -4,13 +4,14 @@
 Summary: Lightweight incoming webhook server to run shell commands
 Name: webhook
 Version: 2.8.0
-Release: 1
+Release: 2
 License: MIT
 URL: https://github.com/adnanh/webhook
 Source0: https://github.com/adnanh/webhook/releases/download/%{version}/webhook-linux-amd64.tar.gz
 Source1: webhook.service
 Source2: webhook.sysconfig
 ExclusiveArch: x86_64
+BuildRequires: systemd
 %{?systemd_requires}
 
 %description
@@ -35,7 +36,7 @@ install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/webhook.service
 install -D -p -m 0644 %{SOURCE2} %{buildroot}/etc/sysconfig/webhook
 mkdir -p %{buildroot}/etc/webhook
 touch %{buildroot}/etc/webhook/hooks.json
-mkdir -p %{buildroot}/var/lib/webhook
+mkdir -p %{buildroot}/var/{lib,log}/webhook
 
 
 %check
@@ -65,10 +66,14 @@ getent passwd webhook >/dev/null || \
 %attr(0750,root,webhook) %dir /etc/webhook
 %ghost %config /etc/webhook/hooks.json
 %{_unitdir}/webhook.service
-%attr(0750,root,webhook) %dir /var/lib/webhook
+%attr(0770,webhook,webhook) %dir /var/lib/webhook
+%attr(0770,webhook,webhook) %dir /var/log/webhook
 
 
 %changelog
+* Wed Jun  2 2021 Matthias Saou <matthias@saou.eu> 2.8.0-2
+- Update lib dir so that webhook user can write to it, add log dir.
+
 * Mon May 31 2021 Matthias Saou <matthias@saou.eu> 2.8.0-1
 - Initial RPM release.
 
