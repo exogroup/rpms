@@ -42,7 +42,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.20.1
-Release:           1%{?dist}.ex2
+Release:           1%{?dist}.ex3
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -81,9 +81,6 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 # downstream patch - fix PIDFile race condition (rhbz#1869026)
 # rejected upstream: https://trac.nginx.org/nginx/ticket/1897
 Patch1:            0002-fix-PIDFile-handling.patch
-
-Source400:         device-detection-cxx-4.2.3-declaration.patch
-Source401:         common-cxx-4.2.3-declaration.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -270,8 +267,6 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 %autosetup -p1
 # https://bugs.centos.org/view.php?id=17300
 %setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307
-patch -p0 < %{SOURCE400}
-patch -p0 < %{SOURCE401}
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
@@ -378,7 +373,7 @@ if ! ./configure \
     --with-stream_ssl_preread_module \
     --with-threads \
 %if %{with 51D}
-    --with-cc-opt="%{optflags} $(pcre-config --cflags) -DFIFTYONEDEGREES_HASH -DFIFTYONEDEGREES_NO_THREADING" \
+    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11" \
 %else
     --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
 %endif
@@ -695,6 +690,9 @@ fi
 
 
 %changelog
+* Tue Jun  1 2021 Matthias Saou <matthias@saou.eu> 1:1.20.1-1.ex3
+- Set -std=gnu11 because 51Degrees requies it (-std=c99 broke naxsi build).
+
 * Thu May 27 2021 Matthias Saou <matthias@saou.eu> 1:1.20.1-1.ex2
 - Update 51Degrees module to the new v4 Hash version.
 - Disable Passenger by default.
