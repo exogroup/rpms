@@ -1,13 +1,14 @@
 Summary: Neighbor Proxy Daemon for IPv6
 Name: npd6
 Version: 1.1.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv3+
 Group: System Environment/Daemons
-URL: http://npd6.github.io/npd6/
+URL: https://github.com/npd6/npd6
 Source0: https://github.com/npd6/npd6/archive/%{version}.tar.gz
 Source1: npd6.service
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires: systemd
 %{?systemd_requires}
 
 %description
@@ -55,6 +56,9 @@ install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/npd6.service
 
 
 %changelog
+* Wed Aug 11 2021 Matthias Saou <matthias@saou.eu> 1.1.0-3
+- Fix service file's missing Install section.
+
 * Tue Mar 17 2020 Matthias Saou <matthias@saou.eu> 1.1.0-2
 - Minor cleanups.
 

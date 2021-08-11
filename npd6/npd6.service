@@ -1,9 +1,12 @@
 [Unit]
 Description=Neighbor Proxy Daemon IPv6
-After=network.target
+After=network-online.target
 
 [Service]
 ExecStart=/usr/bin/npd6 --foreground
 # Theoretically, this is implemented, but in practice is breaks badly
 #ExecReload=/bin/kill -USR1 $MAINPID
 Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
