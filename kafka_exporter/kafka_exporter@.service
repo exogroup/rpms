@@ -1,0 +1,10 @@
+[Unit]
+Description=Kafka Exporter
+After=network-online.target confluent-kafka.service
+
+[Service]
+User=kafka_exporter
+ExecStart=/usr/sbin/kafka_exporter --kafka.server=%I
+
+[Install]
+WantedBy=multi-user.target
