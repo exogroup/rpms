@@ -1,0 +1,64 @@
+--- edgecast-1.0.2/edgecast/__init__.py.orig	2019-05-13 12:35:44.481129602 +0000
++++ edgecast-1.0.2/edgecast/__init__.py	2019-05-13 13:19:19.345320272 +0000
+@@ -47,17 +47,17 @@
+     def _request(self,
+                  endpoint_method,
+                  method,
+-                 data):
++                 data=None):
+         """Perform a request.
+ 
+         :param endpoint_method: Endpoint method such as ``purge``.
+         :param method: Request method.
+-        :param data: JSON request data.
++        :param data: JSON request data (optinal).
+         """
+ 
+         response = self._session.request(
+             method,
+-            'https://api.edgecast.com/v2/mcc/customers/%s/edge/%s' % (
++            'https://api.edgecast.com/v2/mcc/customers/%s/%s' % (
+                 self.account_number,
+                 endpoint_method,
+             ),
+@@ -77,6 +77,8 @@
+                     response.text
+                 ))
+ 
++        return response.json()
++
+     def purge(self, media_type, *patterns):
+         """Purge one or more resources from the CDN.
+ 
+@@ -85,7 +87,7 @@
+         """
+ 
+         for pattern in patterns:
+-            self._request('purge',
++            self._request('edge/purge',
+                           'PUT',
+                           {'MediaPath': pattern, 'MediaType': media_type})
+ 
+@@ -97,10 +99,21 @@
+         """
+ 
+         for url in urls:
+-            self._request('load',
++            self._request('edge/load',
+                           'PUT',
+                           {'MediaPath': url, 'MediaType': media_type})
+ 
++    def get_origins(self, platform):
++        """Retrieve a list of customer origins
++
++        :param platform: Platform to query.
++        """
++
++        response = self._request('origins/' + platform,
++                      'GET')
++
++        return response
++
+ 
+ __all__ = (
+     'MEDIA_TYPE_FLASH_MEDIA_STREAMING',

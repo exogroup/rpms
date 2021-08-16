@@ -1,0 +1,25 @@
+--- striketracker-0.5.2/striketracker/__init__.py.orig	2019-05-13 11:37:44.744557641 +0000
++++ striketracker-0.5.2/striketracker/__init__.py	2019-05-13 11:39:29.983093654 +0000
+@@ -69,6 +69,15 @@
+         else:
+             raise APIError('Could not fetch host', response)
+ 
++    def get_hosts(self, account):
++        response = requests.get(
++            self.base_url + '/api/v1/accounts/{account}/hosts'.format(account=account),
++            headers={'Authorization': 'Bearer %s' % self.token})
++        if response.status_code == 200:
++            return response.json()
++        else:
++            raise APIError('Could not fetch hosts', response)
++
+     def create_host(self, account, host):
+         response = requests.post(
+             self.base_url + '/api/v1/accounts/{account}/hosts'.format(account=account, host=host),
+@@ -411,4 +420,4 @@
+                 sys.stdout.write("\n{platform}\t{path}\n".format(**new_scope))
+                 yaml.dump(new_configuration, sys.stdout, Dumper=SafeDumper, default_flow_style=False)
+             except APIError as e:
+-                self._error(e)
+\ No newline at end of file
++                self._error(e)

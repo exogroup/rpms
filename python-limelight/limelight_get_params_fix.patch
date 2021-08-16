@@ -1,0 +1,11 @@
+--- limelight_rest_wrapper.py.orig	2021-08-16 10:02:02.136837131 +0000
++++ limelight_rest_wrapper.py	2021-08-16 10:02:32.501663418 +0000
+@@ -27,7 +27,7 @@
+             token = hmac.new(api_key.decode("hex"), msg=datastring, digestmod=hashlib.sha256).hexdigest()
+         return token
+ 
+-    def api_get(self, endpoint, query_params):
++    def api_get(self, endpoint, query_params={}):
+         if endpoint == None or endpoint.strip() == "":
+             raise Exception("REST API endpoint is needed")
+         cur_timestamp = str(int(round(time.time()*1000)))
