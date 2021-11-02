@@ -3,7 +3,7 @@
 
 %{?scl:          %scl_package         php-FiftyOneDegreesHashEngine}
 
-%global gh_commit   0331e413b822a29f815e24ff885397b7ada92489
+%global gh_commit   6a8191db2de1c50e2acc959738ef8db36f6b3377
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
 %global gh_owner    51Degrees
 %global gh_project  device-detection-php-onpremise
@@ -11,16 +11,17 @@
 %global with_zts    0%{?_with_zts:%{?__ztsphp:1}}
 %global ini_name    40-%{pecl_name}.ini
 
+# Extract commit hash with 'git submodule status'
 # https://github.com/51Degrees/device-detection-cxx
-%global cxx_dd_commit 214a7663337e7f6af5a0c9291a6f94ea7919d0b4
+%global cxx_dd_commit 3cda350cebbbfc64069149ef3bf2cef5e1b93199
 %global cxx_dd_short  %(c=%{cxx_dd_commit}; echo ${c:0:7})
 # https://github.com/51Degrees/common-cxx
-%global cxx_c_commit  4aad033453fb1459bcccd643bffceafa0d5f37ea
+%global cxx_c_commit  d63b291826b8282b36f08d397847335a69d1a0a8
 %global cxx_c_short   %(c=%{cxx_c_commit}; echo ${c:0:7})
 
 Summary:       Client extension for 51Degrees Device-Detection
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       4.2.4
+Version:       4.3.3
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
@@ -35,6 +36,7 @@ Source2:       https://github.com/%{gh_owner}/common-cxx/archive/%{cxx_c_commit}
 BuildRequires: %{?dtsprefix}gcc
 BuildRequires: %{?scl_prefix}php-devel > 7
 #BuildRequires: %{?scl_prefix}php-tokenizer
+BuildRequires: libatomic
 
 Requires:      %{?scl_prefix}php(zend-abi) = %{php_zend_api}
 Requires:      %{?scl_prefix}php(api) = %{php_core_api}
@@ -84,7 +86,7 @@ cd NTS
 %{_bindir}/phpize
 %configure \
     --with-php-config=%{_bindir}/php-config \
-    PHP7=1 SWIG=1
+    PHP7=1
 make %{?_smp_mflags}
 
 %if %{with_zts}
@@ -92,7 +94,7 @@ cd ../ZTS
 %{_bindir}/zts-phpize
 %configure \
     --with-php-config=%{_bindir}/zts-php-config \
-    PHP7=1 SWIG=1
+    PHP7=1
 make %{?_smp_mflags}
 %endif
 
@@ -157,6 +159,11 @@ cd ../ZTS
 
 
 %changelog
+* Tue Nov  2 2021 Matthias Saou <matthias@saou.eu> 4.3.3-1
+- Update to 4.3.3.
+- Remove incorrect SWIG=1 that makes the build fail.
+- Add new libatomic build requirement.
+
 * Thu Jun 10 2021 Matthias Saou <matthias@saou.eu> 4.2.4-2
 - Update to 4.2.4, cxx to latest stables too.
 
