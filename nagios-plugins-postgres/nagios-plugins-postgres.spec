@@ -1,10 +1,10 @@
 Name:      nagios-plugins-postgres
 Version:   2.25.0
-Release:   1%{?dist}
-Summary:   Provides check_postgres support for Nagios.
+Release:   2%{?dist}
+Summary:   Provides check_postgres support for Nagios
 Group:     Applications/System
 License:   BSD
-URL:       https://bucardo.org/wiki/Check_postgres
+URL:       https://bucardo.org/check_postgres/
 Source0:   https://bucardo.org/downloads/check_postgres-%{version}.tar.gz
 Patch0:    nagios-plugins-postgres-disable_no_psql_option.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -12,8 +12,8 @@ Requires:  nagios-plugins
 Requires:  perl(Data::Dumper)
 Requires:  perl(DateTime::Format::DateParse)
 Requires:  perl(Digest::MD5)
+Requires:  perl(Time::HiRes)
 BuildArch: noarch
-
 
 %description
 Provides check_postgres support for Nagios.
@@ -41,6 +41,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Thu Jan 27 2022 Matthias Saou <matthias@saou.eu> 2.25.0-2
+- Add missing perl(Time::HiRes) requirement.
+
 * Mon Oct  5 2020 Matthias Saou <matthias@saou.eu> 2.25.0-1
 - Update to 2.25.0.
 
