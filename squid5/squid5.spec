@@ -1,8 +1,8 @@
 %define __perl_requires %{SOURCE98}
 
 Name:     squid5
-Version:  5.3
-Release:  1%{?dist}.ex2
+Version:  5.4
+Release:  1%{?dist}.ex1
 Summary:  The Squid proxy caching server
 Epoch:    7
 # See CREDITS for breakdown of non GPLv2+ code
@@ -37,9 +37,6 @@ Patch204: squid-3.5.9-include-guards.patch
 Patch205: squid-5.0.5-symlink-lang-err.patch
 
 Patch300: squid-5.0.6-QueueCapacity.patch
-
-Patch400: 958.diff
-Patch401: 957.diff
 
 # cache_swap.sh
 Requires: bash gawk
@@ -112,9 +109,6 @@ lookup program (dnsserver), a program for retrieving FTP data
 %patch205 -p1 -R -b .symlink-lang-err
 
 %patch300 -p1 -b .QueueCapacity
-
-%patch400 -p1 -b .assertionfix
-%patch401 -p1 -b .memleakfix
 
 # https://bugzilla.redhat.com/show_bug.cgi?id=1679526
 # Patch in the vendor documentation and used different location for documentation
@@ -352,6 +346,11 @@ fi
 
 
 %changelog
+* Wed Feb  9 2022 Matthias Saou <matthias@saou.eu> 7:5.4-1.ex1
+- Update to 5.4.
+- Remove upstreamed patches.
+- Some trivial updates to simple patches.
+
 * Mon Jan 10 2022 Matthias Saou <matthias@saou.eu> 7:5.3-2.ex2
 - Update to 5.3.
 - Include patches for #5132 (#957) and #5134 (#958).
