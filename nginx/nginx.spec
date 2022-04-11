@@ -31,8 +31,8 @@
 %global naxsi_version 1.3
 %global passenger_version 6.0.8
 %global brotli_version 1.0.0rc
-%global fiftyoned_version 4.3.0
-%global fiftyoned_cxx_version 4.2.3
+%global fiftyoned_version 4.4.0
+%global fiftyoned_cxx_version 4.4.1
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -41,8 +41,8 @@
 
 Name:              nginx
 Epoch:             1
-Version:           1.20.1
-Release:           1%{?dist}.ex3
+Version:           1.20.2
+Release:           1%{?dist}.ex1
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -373,7 +373,7 @@ if ! ./configure \
     --with-stream_ssl_preread_module \
     --with-threads \
 %if %{with 51D}
-    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11" \
+    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11 -mcx16" \
 %else
     --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
 %endif
@@ -690,6 +690,11 @@ fi
 
 
 %changelog
+* Mon Apr 11 2022 Matthias Saou <matthias@saou.eu> 1:1.20.2-1.ex1
+- Update to 1.20.2.
+- Update 51Degrees to 4.4.0 and 4.4.1 cxx.
+- Add -mcx16 for 51Degrees, fix undefined symbol: __atomic_compare_exchange_16.
+
 * Tue Jun  1 2021 Matthias Saou <matthias@saou.eu> 1:1.20.1-1.ex3
 - Set -std=gnu11 because 51Degrees requies it (-std=c99 broke naxsi build).
 
