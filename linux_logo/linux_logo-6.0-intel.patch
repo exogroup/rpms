@@ -1,0 +1,48 @@
+From 7e57bc75a8cb2263459cf010ce72832515823370 Mon Sep 17 00:00:00 2001
+From: Vince Weaver <vince@deater.net>
+Date: Tue, 25 May 2021 00:44:12 -0400
+Subject: [PATCH] x86_64: intel: add a few newer chip models
+
+---
+ libsysinfo-0.3.0/Linux/cpuinfo_x86.c | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/libsysinfo-0.3.0/Linux/cpuinfo_x86.c b/libsysinfo-0.3.0/Linux/cpuinfo_x86.c
+index be7bef5..c93d800 100644
+--- a/libsysinfo-0.3.0/Linux/cpuinfo_x86.c
++++ b/libsysinfo-0.3.0/Linux/cpuinfo_x86.c
+@@ -528,7 +528,9 @@ static void fixup_model_centaur(struct cpu_info_type *cpu_info,
+ 	/* calling them "Centaur VIA" chips                */
+ 	if (strstr(model_string,"VIA")!=NULL) {
+ 		strncpy(cpu_info->chip_vendor,"VIA",4);
+-		strncpy(cpu_info->chip_type,model_string+4,SYSINFO_CHIP_TYPE_SIZE);
++		strncpy(cpu_info->chip_type,model_string+4,
++			SYSINFO_CHIP_TYPE_SIZE);
++		cpu_info->chip_type[SYSINFO_CHIP_TYPE_SIZE-1]=0;
+ 	}
+ 
+ 	/* Esther */
+@@ -870,12 +872,23 @@ static void fixup_model_intel(struct cpu_info_type *cpu_info,
+ 				strncpy(base_type,"Tigerlake",10);
+ 				break;
+ 
++			/* Alderlake */
++			case 151: /* Alderlake S */
++			case 154: /* Alderlake P */
++				strncpy(base_type,"Alderlake",10);
++				break;
++
+ 			/* Cometlake */
+ 			case 165: /* Cometlake */
+ 			case 166: /* Cometlake L */
+ 				strncpy(base_type,"Cometlake",10);
+ 				break;
+ 
++			/* Rocketlake */
++			case 167: /* Rocketlake S L */
++				strncpy(base_type,"Rocketlake",11);
++				break;
++
+ 			default: strncpy(base_type,"Unknown",8); break;
+ 		}
+ 	}

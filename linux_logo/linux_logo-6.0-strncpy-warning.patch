@@ -1,0 +1,21 @@
+From eab5d0aee3173dfc9961e3dc64306a0e30b65861 Mon Sep 17 00:00:00 2001
+From: Vince Weaver <vince@deater.net>
+Date: Tue, 25 May 2021 00:45:34 -0400
+Subject: [PATCH] linux_logo: fix strncpy warning
+
+---
+ linux_logo.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/linux_logo.c b/linux_logo.c
+index e95dc92..754fd06 100644
+--- a/linux_logo.c
++++ b/linux_logo.c
+@@ -844,6 +844,7 @@ static void parse_command_line(struct linux_logo_info_type *settings,
+ 
+ 	            settings->custom_format=1;
+ 	            strncpy(settings->format,argument,BUFSIZ);
++                    settings->format[BUFSIZ-1]=0;
+ 
+ 	            /* Decode the \n's. */
+ 	            /* Should I decode other \ codes? */

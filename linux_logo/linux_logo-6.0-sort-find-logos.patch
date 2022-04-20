@@ -1,0 +1,26 @@
+From c3f23ac89189139e1b295a4fef50af336917b5fe Mon Sep 17 00:00:00 2001
+From: "Bernhard M. Wiedemann" <bwiedemann@suse.de>
+Date: Fri, 22 May 2020 12:21:36 +0200
+Subject: [PATCH] Sort input file list
+
+so that logo_config and load_logos.h build in a reproducible way
+in spite of indeterministic filesystem readdir order
+
+See https://reproducible-builds.org/ for why this is good.
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 236c3d3..5e46605 100644
+--- a/Makefile
++++ b/Makefile
+@@ -42,7 +42,7 @@ translations:
+ 	cd po && $(MAKE)
+ 
+ logos-all:	logo_config
+-	find ./logos -type f -a ! -name banner.logo -a ! -name classic.logo >> logo_config
++	find ./logos -type f -a ! -name banner.logo -a ! -name classic.logo | sort >> logo_config
+ 	$(MAKE) all
+ 
+ logo_config:
