@@ -1,7 +1,7 @@
 %undefine _missing_build_ids_terminate_build
 
 Name:       micromdm
-Version:    1.6.0
+Version:    1.9.0
 Release:    1%{?dist}
 Summary:    API focused Mobile Device Management server for Apple Devices
 License:    MIT
@@ -61,5 +61,6 @@ exit 0
 %{_unitdir}/micromdm.service
 
 %changelog
+* Wed Apr 20 2022 Vincent Tamet <vincent.tamet@exoclick.com> - 1.9.0-1
 * Wed Aug 19 2020 Vincent Tamet <vincent.tamet@exoclick.com> - 1.6.0-1
 - Initial release
