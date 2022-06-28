@@ -1,0 +1,10 @@
+[Unit]
+Description=Triggers on journal messages
+After=systemd-journald.service
+
+[Service]
+ExecStart=/usr/bin/journal-triggerd
+User=journal-trigger
+
+[Install]
+WantedBy=multi-user.target
