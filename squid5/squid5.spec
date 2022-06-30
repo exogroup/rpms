@@ -1,7 +1,7 @@
 %define __perl_requires %{SOURCE98}
 
 Name:     squid5
-Version:  5.5
+Version:  5.6
 Release:  1%{?dist}.ex1
 Summary:  The Squid proxy caching server
 Epoch:    7
@@ -41,7 +41,9 @@ Patch300: squid-5.0.6-QueueCapacity.patch
 # cache_swap.sh
 Requires: bash gawk
 # for httpd conf file - cachemgr script alias
+%if ! (0%{?rhel} > 0 && 0%{?rhel} < 8)
 Requires: httpd-filesystem
+%endif
 Requires(pre): shadow-utils
 Requires(post): systemd
 Requires(preun): systemd
@@ -346,6 +348,12 @@ fi
 
 
 %changelog
+* Thu Jun 30 2022 Matthias Saou <matthias@saou.eu> 7:5.6-1.ex1
+- Update to 5.6.
+
+* Tue May 17 2022 Matthias Saou <matthias@saou.eu> 7:5.5-1.ex2
+- Don't require httpd-filesystem on el7.
+
 * Mon Apr 18 2022 Matthias Saou <matthias@saou.eu> 7:5.5-1.ex1
 - Update to 5.5.
 
