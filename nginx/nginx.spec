@@ -41,7 +41,7 @@
 
 Name:              nginx
 Epoch:             1
-Version:           1.20.2
+Version:           1.22.0
 Release:           1%{?dist}.ex1
 
 Summary:           A high performance web server and reverse proxy server
@@ -82,6 +82,8 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 # rejected upstream: https://trac.nginx.org/nginx/ticket/1897
 Patch1:            0002-fix-PIDFile-handling.patch
 
+Source1000:        device-detection-nginx-4.4.0-libatomic.patch
+
 BuildRequires:     make
 BuildRequires:     gcc
 BuildRequires:     gnupg2
@@ -95,6 +97,9 @@ BuildRequires:     openssl11-devel
 %endif
 BuildRequires:     pcre-devel
 BuildRequires:     zlib-devel
+%if %{with 51D}
+BuildRequires:     libatomic
+%endif
 
 Requires:          nginx-filesystem = %{epoch}:%{version}-%{release}
 %if 0%{?el7}
@@ -268,6 +273,7 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 # https://bugs.centos.org/view.php?id=17300
 %setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
+patch -p0 < %{SOURCE1000}
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 sed -i -e 's#KillMode=.*#KillMode=process#g' nginx.service
@@ -373,7 +379,7 @@ if ! ./configure \
     --with-stream_ssl_preread_module \
     --with-threads \
 %if %{with 51D}
-    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11 -mcx16" \
+    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11" \
 %else
     --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
 %endif
@@ -690,6 +696,10 @@ fi
 
 
 %changelog
+* Thu Jun 30 2022 Matthias Saou <matthias@saou.eu> 1:1.22.0-1.ex1
+- Update to 1.22.0.
+- Fix libatomic linking of the 51Degrees module.
+
 * Mon Apr 11 2022 Matthias Saou <matthias@saou.eu> 1:1.20.2-1.ex1
 - Update to 1.20.2.
 - Update 51Degrees to 4.4.0 and 4.4.1 cxx.
