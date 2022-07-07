@@ -31,8 +31,9 @@
 %global naxsi_version 1.3
 %global passenger_version 6.0.8
 %global brotli_version 1.0.0rc
-%global fiftyoned_version 4.4.0
-%global fiftyoned_cxx_version 4.4.1
+%global fiftyoned_version 4.4.1
+%global fiftyoned_cxx_version 4.4.5
+%global fiftyoned_common_cxx_version 4.4.4
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -42,7 +43,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.22.0
-Release:           1%{?dist}.ex1
+Release:           1%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -72,7 +73,7 @@ Source303:         https://github.com/phusion/passenger/archive/release-%{passen
 Source304:         https://github.com/google/ngx_brotli/archive/v%{brotli_version}/ngx_brotli-%{brotli_version}.tar.gz
 Source305:         https://github.com/51Degrees/device-detection-nginx/archive/%{fiftyoned_version}/device-detection-nginx-%{fiftyoned_version}.tar.gz
 Source306:         https://github.com/51Degrees/device-detection-cxx/archive/%{fiftyoned_cxx_version}/device-detection-cxx-%{fiftyoned_cxx_version}.tar.gz
-Source307:         https://github.com/51Degrees/common-cxx/archive/%{fiftyoned_cxx_version}/common-cxx-%{fiftyoned_cxx_version}.tar.gz
+Source307:         https://github.com/51Degrees/common-cxx/archive/%{fiftyoned_common_cxx_version}/common-cxx-%{fiftyoned_common_cxx_version}.tar.gz
 
 # removes -Werror in upstream build scripts.  -Werror conflicts with
 # -D_FORTIFY_SOURCE=2 causing warnings to turn into errors.
@@ -82,7 +83,7 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 # rejected upstream: https://trac.nginx.org/nginx/ticket/1897
 Patch1:            0002-fix-PIDFile-handling.patch
 
-Source1000:        device-detection-nginx-4.4.0-libatomic.patch
+Source1000:        device-detection-nginx-4.4.1-libatomic.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -292,7 +293,7 @@ pushd device-detection-nginx-%{fiftyoned_version}
   # Get device-detection-cxx source into place (normally sub-module)
   mv ../device-detection-cxx-%{fiftyoned_cxx_version}/src 51Degrees_module/
   # Get common-cxx source into place (normally also sub-module)
-  mv ../common-cxx-%{fiftyoned_cxx_version}/* 51Degrees_module/src/common-cxx/
+  mv ../common-cxx-%{fiftyoned_common_cxx_version}/* 51Degrees_module/src/common-cxx/
 popd
 
 
@@ -696,6 +697,9 @@ fi
 
 
 %changelog
+* Thu Jul  7 2022 Matthias Saou <matthias@saou.eu> 1:1.22.0-1.ex2
+- Update 51Degrees to 4.4.1 and 4.4.5 cxx and 4.4.4 common cxx.
+
 * Thu Jun 30 2022 Matthias Saou <matthias@saou.eu> 1:1.22.0-1.ex1
 - Update to 1.22.0.
 - Fix libatomic linking of the 51Degrees module.
