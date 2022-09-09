@@ -1,0 +1,11 @@
+[Unit]
+Description=Docker Registry
+After=network-online.target
+
+[Service]
+User=nobody
+ExecStart=/usr/sbin/docker-distribution-auth /etc/docker-distribution-auth/config.yaml
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
