@@ -1,0 +1,12 @@
+[Unit]
+Description=ClickHouse Proxy
+After=network.target
+
+[Service]
+User=chproxy
+ExecStart=/usr/bin/chproxy -config=/etc/chproxy.yml
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
