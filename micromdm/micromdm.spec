@@ -1,8 +1,9 @@
 %undefine _missing_build_ids_terminate_build
+%define debug_package %{nil}
 
 Name:       micromdm
 Version:    1.9.0
-Release:    1%{?dist}
+Release:    2%{?dist}
 Summary:    API focused Mobile Device Management server for Apple Devices
 License:    MIT
 URL:        https://github.com/micromdm/micromdm
@@ -61,6 +62,11 @@ exit 0
 %{_unitdir}/micromdm.service
 
 %changelog
+* Thu Nov 10 2022 Matthias SAou <matthias@saou.eu> 1.9.0-2
+- Disable debug package, it was empty and making the el9 build fail.
+
 * Wed Apr 20 2022 Vincent Tamet <vincent.tamet@exoclick.com> - 1.9.0-1
+- Update to 1.9.0.
+
 * Wed Aug 19 2020 Vincent Tamet <vincent.tamet@exoclick.com> - 1.6.0-1
 - Initial release
