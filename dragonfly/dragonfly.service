@@ -1,0 +1,16 @@
+[Unit]
+Description=Modern replacement for Redis and Memcached
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=dragonfly
+EnvironmentFile=-/etc/sysconfig/dragonfly
+ExecStart=/usr/bin/dragonfly --dir /var/lib/dragonfly --log_dir /var/log/dragonfly $OPTIONS
+# Sending HUP stops the process :-(
+#ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,2 @@
+# See 'dragonfly --helpfull' for all possible command line options
+OPTIONS="--memcache_port 11211"

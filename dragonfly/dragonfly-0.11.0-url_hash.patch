@@ -1,0 +1,26 @@
+diff -Naupr dragonfly-0.11.0.orig/src/CMakeLists.txt dragonfly-0.11.0/src/CMakeLists.txt
+--- dragonfly-0.11.0.orig/src/CMakeLists.txt	2022-11-17 00:41:48.307526711 +0100
++++ dragonfly-0.11.0/src/CMakeLists.txt	2022-11-17 08:15:32.504965484 +0100
+@@ -1,6 +1,7 @@
+ add_third_party(
+   lua
+   URL https://github.com/lua/lua/archive/refs/tags/v5.4.4.tar.gz
++  URL_HASH SHA1=49c21d28e6825df4fd1ed47a72f177a0eb0d4593
+   PATCH_COMMAND patch -p1 -i "${CMAKE_SOURCE_DIR}/patches/lua-v5.4.4.patch"
+   CONFIGURE_COMMAND echo
+   BUILD_IN_SOURCE 1
+@@ -12,12 +13,14 @@ add_third_party(
+ add_third_party(
+   dconv
+   URL https://github.com/google/double-conversion/archive/refs/tags/v3.2.0.tar.gz
++  URL_HASH SHA1=7234b7450daf4266eaf5459c084afed7cfd57b52
+   LIB libdouble-conversion.a
+ )
+ 
+ add_third_party(
+   jsoncons
+   URL https://github.com/danielaparker/jsoncons/archive/refs/tags/v0.168.7.tar.gz
++  URL_HASH SHA1=ac490d017d6db529c328306cec7d87185ea36317
+   CMAKE_PASS_FLAGS "-DJSONCONS_BUILD_TESTS=OFF"
+   LIB "none"
+ )

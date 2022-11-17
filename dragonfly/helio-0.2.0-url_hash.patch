@@ -1,0 +1,86 @@
+diff -Naupr helio-0.2.0.orig/cmake/third_party.cmake helio-0.2.0/cmake/third_party.cmake
+--- helio-0.2.0.orig/cmake/third_party.cmake	2022-10-07 08:56:49.000000000 +0200
++++ helio-0.2.0/cmake/third_party.cmake	2022-11-17 00:33:35.220669045 +0100
+@@ -146,6 +146,7 @@ endfunction()
+ FetchContent_Declare(
+   gtest
+   URL https://github.com/google/googletest/archive/release-1.11.0.zip
++  URL_HASH SHA1=9ffb7b5923f4a8fcdabf2f42c6540cce299f44c0
+ )
+ 
+ FetchContent_GetProperties(gtest)
+@@ -157,6 +158,7 @@ endif ()
+ FetchContent_Declare(
+   benchmark
+   URL https://github.com/google/benchmark/archive/v1.6.1.tar.gz
++  URL_HASH SHA1=1faaa54195824bbe151c1ebee31623232477d075
+ )
+ 
+ FetchContent_GetProperties(benchmark)
+@@ -172,6 +174,7 @@ endif ()
+ FetchContent_Declare(
+   abseil_cpp
+   URL https://github.com/abseil/abseil-cpp/archive/20220623.0.tar.gz
++  URL_HASH SHA1=144c2108e1532c642cdb6ca532ee26e91146cf28
+ )
+ 
+ FetchContent_GetProperties(abseil_cpp)
+@@ -190,11 +193,8 @@ endif()
+ 
+ FetchContent_Declare(
+   glog
+-  GIT_REPOSITORY https://github.com/romange/glog
+-  GIT_TAG Absl
+-
+-  GIT_PROGRESS    TRUE
+-  GIT_SHALLOW     TRUE
++  URL https://github.com/romange/glog/archive/e433227/glog-e433227.tar.gz
++  URL_HASH SHA1=f21cf3fbd90777c0c3f3f80a6f3b2d76e7afd445
+ )
+ 
+ FetchContent_GetProperties(glog)
+@@ -241,6 +241,7 @@ endif()
+ add_third_party(
+   gperf
+   URL https://github.com/gperftools/gperftools/archive/gperftools-2.9.1.tar.gz
++  URL_HASH SHA1=8e4e3759bc16c86fbab31663d6997ae0148d1edb
+ 
+   GIT_SHALLOW TRUE
+   PATCH_COMMAND autoreconf -i   # update runs every time for some reason
+@@ -267,6 +268,7 @@ endif()
+ 
+ add_third_party(mimalloc
+   URL https://github.com/microsoft/mimalloc/archive/refs/tags/v2.0.5.tar.gz
++  URL_HASH SHA1=1db742f1f4734b14dc8d9605dca642f1a7832f0a
+ 
+   # Add -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_FLAGS=-O0 to debug
+   CMAKE_PASS_FLAGS "-DCMAKE_BUILD_TYPE=Release -DMI_BUILD_SHARED=OFF -DMI_BUILD_TESTS=OFF \
+@@ -289,6 +291,7 @@ add_third_party(jemalloc
+ add_third_party(
+   xxhash
+   URL https://github.com/Cyan4973/xxHash/archive/v0.8.0.tar.gz
++  URL_HASH SHA1=edd0ad280e3d294d06b278c3c9ae03b2b7d6686a
+   SOURCE_SUBDIR cmake_unofficial
+   CMAKE_PASS_FLAGS "-DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=OFF"
+ )
+@@ -296,16 +299,16 @@ add_third_party(
+ 
+ add_third_party(
+   uring
+-  GIT_REPOSITORY https://github.com/axboe/liburing.git
+-  GIT_TAG liburing-2.2
++  URL https://github.com/axboe/liburing/archive/refs/tags/liburing-2.2.tar.gz
++  URL_HASH SHA1=b788b0217e80fcc3efdd3584d1417f93ad00934c
+   CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=${THIRD_PARTY_LIB_DIR}/uring
+   BUILD_IN_SOURCE 1
+ )
+ 
+ add_third_party(
+   rapidjson
+-  GIT_REPOSITORY https://github.com/Tencent/rapidjson.git
+-  GIT_TAG 1a803826f1197b5e30703afe4b9c0e7dd48074f5
++  URL https://github.com/Tencent/rapidjson/archive/1a803826/rapidjson-1a803826.tar.gz
++  URL_HASH SHA1=88b05bdacca4d8c2f0c19f31fbfefa752920c4d4
+   CMAKE_PASS_FLAGS "-DRAPIDJSON_BUILD_TESTS=OFF -DRAPIDJSON_BUILD_EXAMPLES=OFF \
+                     -DRAPIDJSON_BUILD_DOC=OFF"
+   LIB "none"
