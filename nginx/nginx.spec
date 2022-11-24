@@ -84,6 +84,7 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 Patch1:            0002-fix-PIDFile-handling.patch
 
 Source1000:        device-detection-nginx-4.4.3-libatomic.patch
+Source1001:        naxsi-1.3-pcre2.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -274,7 +275,8 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 # https://bugs.centos.org/view.php?id=17300
 %setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
-patch -p0 < %{SOURCE1000}
+(cd device-detection-nginx-%{fiftyoned_version}; patch -p1 < %{SOURCE1000})
+(cd naxsi-%{naxsi_version}; patch -p1 < %{SOURCE1001})
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 sed -i -e 's#KillMode=.*#KillMode=process#g' nginx.service
@@ -699,6 +701,7 @@ fi
 - Update to 1.22.1.
 - Fix el9 build of 51Degrees by including -fcommon for recent gcc.
 - Remove obsolete nginx_ldopts override for perl module to build.
+- Include naxsi pcre2 patch from Arch Linux.
 
 * Thu Jul  7 2022 Matthias Saou <matthias@saou.eu> 1:1.22.0-1.ex2
 - Update 51Degrees to 4.4.1 and 4.4.5 cxx and 4.4.4 common cxx.
