@@ -27,13 +27,13 @@
 %endif
 
 # Custom
-%global geoip2_version 3.3
+%global geoip2_version 3.4
 %global naxsi_version 1.3
-%global passenger_version 6.0.8
+%global passenger_version 6.0.15
 %global brotli_version 1.0.0rc
-%global fiftyoned_version 4.4.1
-%global fiftyoned_cxx_version 4.4.5
-%global fiftyoned_common_cxx_version 4.4.4
+%global fiftyoned_version 4.4.3
+%global fiftyoned_cxx_version 4.4.8
+%global fiftyoned_common_cxx_version 4.4.6
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -42,8 +42,8 @@
 
 Name:              nginx
 Epoch:             1
-Version:           1.22.0
-Release:           1%{?dist}.ex2
+Version:           1.22.1
+Release:           1%{?dist}.ex1
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -83,7 +83,7 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 # rejected upstream: https://trac.nginx.org/nginx/ticket/1897
 Patch1:            0002-fix-PIDFile-handling.patch
 
-Source1000:        device-detection-nginx-4.4.1-libatomic.patch
+Source1000:        device-detection-nginx-4.4.3-libatomic.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -303,8 +303,6 @@ popd
 # to error out.  This is is also the reason for the DESTDIR environment
 # variable.
 export DESTDIR=%{buildroot}
-# So the perl module finds its symbols:
-nginx_ldopts="$RPM_LD_FLAGS -Wl,-E"
 %if 0%{?rhel} < 8
 # So the passenger module finds openssl 1.1
 export EXTRA_CXXFLAGS="-I%{_includedir}/openssl11"
@@ -380,7 +378,7 @@ if ! ./configure \
     --with-stream_ssl_preread_module \
     --with-threads \
 %if %{with 51D}
-    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11" \
+    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11 -fcommon" \
 %else
     --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
 %endif
@@ -697,6 +695,11 @@ fi
 
 
 %changelog
+* Wed Nov 23 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex1
+- Update to 1.22.1.
+- Fix el9 build of 51Degrees by including -fcommon for recent gcc.
+- Remove obsolete nginx_ldopts override for perl module to build.
+
 * Thu Jul  7 2022 Matthias Saou <matthias@saou.eu> 1:1.22.0-1.ex2
 - Update 51Degrees to 4.4.1 and 4.4.5 cxx and 4.4.4 common cxx.
 

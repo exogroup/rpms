@@ -1,6 +1,6 @@
-diff -Naupr device-detection-nginx-4.4.1.orig/module_conf/hash_config device-detection-nginx-4.4.1/module_conf/hash_config
---- device-detection-nginx-4.4.1.orig/module_conf/hash_config	2022-04-07 08:26:34.000000000 +0200
-+++ device-detection-nginx-4.4.1/module_conf/hash_config	2022-06-30 11:07:37.650754304 +0200
+diff -Naupr device-detection-nginx-4.4.3.orig/module_conf/hash_config device-detection-nginx-4.4.1/module_conf/hash_config
+--- device-detection-nginx-4.4.3.orig/module_conf/hash_config	2022-04-07 08:26:34.000000000 +0200
++++ device-detection-nginx-4.4.3/module_conf/hash_config	2022-06-30 11:07:37.650754304 +0200
 @@ -1,12 +1,27 @@
 -ngx_addon_name=ngx_http_51D_module
 +ngx_feature="51Degrees detection"
