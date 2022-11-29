@@ -43,7 +43,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.22.1
-Release:           1%{?dist}.ex1
+Release:           1%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -276,7 +276,9 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 %setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 (cd device-detection-nginx-%{fiftyoned_version}; patch -p1 < %{SOURCE1000})
+%if 0%{?rhel} > 0 && 0%{?rhel} >= 9
 (cd naxsi-%{naxsi_version}; patch -p1 < %{SOURCE1001})
+%endif
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 sed -i -e 's#KillMode=.*#KillMode=process#g' nginx.service
@@ -697,6 +699,10 @@ fi
 
 
 %changelog
+* Tue Nov 29 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex2
+- Add -lm to 51Degrees link to fix missing powf symbol.
+- Enable naxsi pcre2 patch on el9+ only, to avoid breaking build on older el.
+
 * Wed Nov 23 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex1
 - Update to 1.22.1.
 - Fix el9 build of 51Degrees by including -fcommon for recent gcc.

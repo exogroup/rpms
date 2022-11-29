@@ -7,7 +7,7 @@ diff -Naupr device-detection-nginx-4.4.3.orig/module_conf/hash_config device-det
 +ngx_feature_name=
 +ngx_feature_run=no
 +ngx_feature_incs=
-+ngx_feature_libs=-latomic
++ngx_feature_libs="-latomic -lm"
 +ngx_feature_test="__atomic_compare_exchange_16"
 +. auto/feature
  
