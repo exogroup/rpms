@@ -43,7 +43,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.22.1
-Release:           1%{?dist}.ex2
+Release:           1%{?dist}.ex3
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -130,6 +130,9 @@ BuildRequires:     systemd
 Requires(post):    systemd
 Requires(preun):   systemd
 Requires(postun):  systemd
+
+# Provide working upgrade path from RHEL9's packages
+Obsoletes: nginx-core < 1:%{version}-%{release}
 
 %description
 Nginx is a web server and a reverse proxy server for HTTP, SMTP, POP3 and
@@ -699,6 +702,9 @@ fi
 
 
 %changelog
+* Wed Nov 30 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex3
+- Provide working upgrade path from RHEL9's packages.
+
 * Tue Nov 29 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex2
 - Add -lm to 51Degrees link to fix missing powf symbol.
 - Enable naxsi pcre2 patch on el9+ only, to avoid breaking build on older el.
