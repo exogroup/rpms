@@ -26,8 +26,9 @@ Update 6/2018
   beeing able to send the SIGHUP to the process and read the mysqld pid file, which root can.
 * Submited as PR: https://github.com/MariaDB/server/pull/807
 
---- mariadb-10.3.19/support-files/mysql-log-rotate.sh	2019-11-03 17:03:27.000000000 +0100
-+++ mariadb-10.3.19/support-files/mysql-log-rotate.sh_patched	2019-11-06 15:07:54.205379672 +0100
+diff -Naupr mariadb-10.4.27.orig/support-files/mysql-log-rotate.sh mariadb-10.4.27/support-files/mysql-log-rotate.sh
+--- mariadb-10.4.27.orig/support-files/mysql-log-rotate.sh	2022-11-02 13:18:53.000000000 +0100
++++ mariadb-10.4.27/support-files/mysql-log-rotate.sh	2022-12-05 11:03:18.839261293 +0100
 @@ -3,23 +3,10 @@
  # in the [mysqld] section as follows:
  #
@@ -52,19 +53,21 @@ Update 6/2018
 -        # create 600 mysql mysql
 +@LOG_LOCATION@ {
 +        create 600 mysql mysql
+         su mysql mysql
          notifempty
          daily
-         rotate 3
-@@ -27,11 +14,9 @@
+@@ -27,12 +14,10 @@
+         missingok
          compress
      postrotate
- 	# just if mysqld is really running
+-	# just if mysqld is really running
 -	if test -x @bindir@/mysqladmin && \
 -	   @bindir@/mysqladmin ping &>/dev/null
 -	then
 -	   @bindir@/mysqladmin --local flush-error-log \
 -              flush-engine-log flush-general-log flush-slow-log
 -	fi
++        # just if mysqld is really running
 +        if [ -e @PID_FILE_DIR@/@DAEMON_NO_PREFIX@.pid ]
 +        then
 +           kill -1 $(<@PID_FILE_DIR@/@DAEMON_NO_PREFIX@.pid)

@@ -39,7 +39,7 @@
 #   https://mariadb.com/kb/en/library/about-myrocks-for-mariadb/
 #   RocksDB engine is available only for x86_64
 #   RocksDB may be built with jemalloc, if specified in CMake
-%if %_arch == x86_64 && 0%{?fedora}
+%if "%{_arch}" == "x86_64" && 0%{?fedora}
 %bcond_without tokudb
 %bcond_without mroonga
 %bcond_without rocksdb
@@ -104,7 +104,7 @@
 %bcond_without unbundled_pcre
 %else
 %bcond_with unbundled_pcre
-%global pcre_bundled_version 8.43
+%global pcre_bundled_version 8.45
 %endif
 
 # Use main python interpretter version
@@ -146,7 +146,7 @@
 %global sameevr   %{epoch}:%{version}-%{release}
 
 Name:             mariadb
-Version:          10.4.12
+Version:          10.4.27
 Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            3
 
@@ -196,9 +196,9 @@ Patch11:          %{pkgnamepatch}-pcdir.patch
 #   Patch13: Fix Spider code on armv7hl; https://jira.mariadb.org/browse/MDEV-18737
 Patch13:          %{pkgnamepatch}-spider_on_armv7hl.patch
 #   Patch14: Remove the '-Werror' flag so the debug build won't crash on random warnings
-Patch14:          %{pkgnamepatch}-debug_build.patch
+#Patch14:          %{pkgnamepatch}-debug_build.patch
 #   Patch15:  Add option to edit groonga's and groonga-normalizer-mysql install path
-Patch15:          %{pkgnamepatch}-groonga.patch
+#Patch15:          %{pkgnamepatch}-groonga.patch
 #   Patch16: Workaround for "chown 0" with priviledges dropped to "mysql" user
 Patch16:          %{pkgnamepatch}-auth_pam_tool_dir.patch
 
@@ -684,8 +684,8 @@ find . -name "*.jar" -type f -exec rm --verbose -f {} \;
 %patch10 -p1
 %patch11 -p1
 %patch13 -p1
-%patch14 -p1
-%patch15 -p1
+#patch14 -p1
+#patch15 -p1
 %patch16 -p1
 
 # workaround for upstream bug #56342
@@ -809,7 +809,7 @@ export CFLAGS CXXFLAGS CPPFLAGS
          -DMYSQL_DATADIR="%{dbdatadir}" \
          -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DTMPDIR=/var/tmp \
-         -DGRN_DATA_DIR=share/%{name}-server/groonga \
+         -DGRN_DATA_DIR=share/%{name}-server/#groonga \
          -DGROONGA_NORMALIZER_MYSQL_PROJECT_NAME=%{name}-server/groonga-normalizer-mysql \
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
@@ -906,16 +906,13 @@ rm scripts/my.cnf
 # use different config file name for each variant of server (mariadb / mysql)
 mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 
-# Rename sysusers and tmpfiles config files, they should be named after the software they belong to
-mv %{buildroot}%{_sysusersdir}/sysusers.conf %{buildroot}%{_sysusersdir}/%{name}.conf
-
 # remove SysV init script and a symlink to that, we use systemd
 rm %{buildroot}%{_libexecdir}/rcmysql
 # install systemd unit files and scripts for handling server startup
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 644 scripts/mysql@.service %{buildroot}%{_unitdir}/%{daemon_name}@.service
 # Remove the upstream version
-rm %{buildroot}%{_tmpfilesdir}/tmpfiles.conf
+rm %{buildroot}%{_tmpfilesdir}/%{name}.conf
 # Install downstream version
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
@@ -993,7 +990,7 @@ rm %{buildroot}%{logrotateddir}/mysql
 # Remove AppArmor files
 rm -r %{buildroot}%{_datadir}/%{pkg_name}/policy/apparmor
 
-mv %{buildroot}/lib/security %{buildroot}%{_libdir}
+mv %{buildroot}/lib*/security %{buildroot}%{_libdir}
 
 # Disable plugins
 %if %{with gssapi}
@@ -1068,11 +1065,7 @@ rm %{buildroot}%{_mandir}/man1/mysql{access,admin,binlog,check,dump,_find_rows,i
 rm %{buildroot}%{_mandir}/man1/mariadb-{access,admin,binlog,check,dump,find-rows,import,plugin,show,slap,waitpid}.1*
 %endif
 
-%if %{without tokudb}
-# because upstream ships manpages for tokudb even on architectures that tokudb doesn't support
-rm %{buildroot}%{_mandir}/man1/tokuftdump.1*
-rm %{buildroot}%{_mandir}/man1/tokuft_logprint.1*
-%else
+%if %{with tokudb}
 %if 0%{?fedora} || 0%{?rhel} > 7
 # Move the upstream file to the correct location
 mkdir -p %{buildroot}%{_unitdir}/mariadb.service.d
@@ -1090,7 +1083,8 @@ rm -r %{buildroot}%{_datadir}/%{pkg_name}/charsets
 
 %if %{without errmsg}
 rm %{buildroot}%{_datadir}/%{pkg_name}/errmsg-utf8.txt
-rm -r %{buildroot}%{_datadir}/%{pkg_name}/{english,czech,danish,dutch,estonian,\
+rm -r %{buildroot}%{_datadir}/%{pkg_name}/{english,bulgarian,chinese,\
+czech,danish,dutch,estonian,\
 french,german,greek,hungarian,italian,japanese,korean,norwegian,norwegian-ny,\
 polish,portuguese,romanian,russian,serbian,slovak,spanish,swedish,ukrainian,hindi}
 %endif
@@ -1313,6 +1307,8 @@ fi
 %files errmsg
 %{_datadir}/%{pkg_name}/errmsg-utf8.txt
 %{_datadir}/%{pkg_name}/english
+%lang(bg) %{_datadir}/%{pkg_name}/bulgarian
+%lang(zh) %{_datadir}/%{pkg_name}/chinese
 %lang(cs) %{_datadir}/%{pkg_name}/czech
 %lang(da) %{_datadir}/%{pkg_name}/danish
 %lang(nl) %{_datadir}/%{pkg_name}/dutch
@@ -1451,11 +1447,10 @@ fi
 %{_datadir}/%{pkg_name}/install_spider.sql
 %{_datadir}/%{pkg_name}/maria_add_gis_sp.sql
 %{_datadir}/%{pkg_name}/maria_add_gis_sp_bootstrap.sql
+%{_datadir}/%{pkg_name}/mysql_performance_tables.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables.sql
 %{_datadir}/%{pkg_name}/mysql_system_tables_data.sql
 %{_datadir}/%{pkg_name}/mysql_test_data_timezone.sql
-%{_datadir}/%{pkg_name}/mysql_to_mariadb.sql
-%{_datadir}/%{pkg_name}/mysql_performance_tables.sql
 %{_datadir}/%{pkg_name}/mysql_test_db.sql
 %if %{with mroonga}
 %{_datadir}/%{pkg_name}/mroonga/install.sql
@@ -1646,7 +1641,6 @@ fi
 %{_bindir}/my_safe_process
 %attr(-,mysql,mysql) %{_datadir}/mysql-test
 %{_mandir}/man1/mysql_client_test.1*
-%{_mandir}/man1/mysql_client_test.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/mariadb-client-test.1*
 %{_mandir}/man1/mariadb-test.1*
@@ -1656,6 +1650,9 @@ fi
 %endif
 
 %changelog
+* Mon Dec  5 2022 Matthias Saou <matthias@saou.eu> 10.4.27-1
+- Update to 10.4.27.
+
 * Thu Feb 06 2020 Michal Schorm <mschorm@redhat.com> - 10.4.12-1
 - Rebase to 10.4.12
 

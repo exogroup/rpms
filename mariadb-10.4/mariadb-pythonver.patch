@@ -10,18 +10,17 @@ In Fedora 30 it is required to specify either /usr/bin/python2 or /usr/bin/pytho
  CMakeLists.txt | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index a139c9e5fa4..ccccb08bef1 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -342,7 +342,9 @@ MYSQL_CHECK_SSL()
- MYSQL_CHECK_READLINE()
+diff -Naupr mariadb-10.4.27.orig/CMakeLists.txt mariadb-10.4.27/CMakeLists.txt
+--- mariadb-10.4.27.orig/CMakeLists.txt	2022-11-02 13:18:48.000000000 +0100
++++ mariadb-10.4.27/CMakeLists.txt	2022-12-05 10:57:41.483842616 +0100
+@@ -415,7 +415,9 @@ INCLUDE(cpack_tgz)
+ INCLUDE(cpack_rpm)
+ INCLUDE(cpack_deb)
  
- SET(MALLOC_LIBRARY "system")
 -SET(PYTHON_SHEBANG "/usr/bin/env python" CACHE STRING "python shebang")
 +IF(NOT DEFINED PYTHON_SHEBANG)
 +  SET(PYTHON_SHEBANG "/usr/bin/env python")
 +ENDIF()
  MARK_AS_ADVANCED(PYTHON_SHEBANG)
  
- CHECK_PCRE()
+ # Add storage engines and plugins.
