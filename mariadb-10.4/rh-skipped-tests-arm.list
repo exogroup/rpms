@@ -1,0 +1,2 @@
+# Fails since 10.3.17, only on armv7hl
+versioning.partition      :

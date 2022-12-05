@@ -1,0 +1,4 @@
+# Fails since 10.2.15
+disks.disks                    :
+# Fails since 10.4.11
+disks.disks_notembedded        :
