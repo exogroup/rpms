@@ -34,16 +34,18 @@
 %global fiftyoned_version 4.4.3
 %global fiftyoned_cxx_version 4.4.8
 %global fiftyoned_common_cxx_version 4.4.6
+%global lua_version 0.10.22
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
 %bcond_without brotli
 %bcond_without 51D
+%bcond_without lua
 
 Name:              nginx
 Epoch:             1
 Version:           1.22.1
-Release:           1%{?dist}.ex3
+Release:           1%{?dist}.ex4
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -74,6 +76,7 @@ Source304:         https://github.com/google/ngx_brotli/archive/v%{brotli_versio
 Source305:         https://github.com/51Degrees/device-detection-nginx/archive/%{fiftyoned_version}/device-detection-nginx-%{fiftyoned_version}.tar.gz
 Source306:         https://github.com/51Degrees/device-detection-cxx/archive/%{fiftyoned_cxx_version}/device-detection-cxx-%{fiftyoned_cxx_version}.tar.gz
 Source307:         https://github.com/51Degrees/common-cxx/archive/%{fiftyoned_common_cxx_version}/common-cxx-%{fiftyoned_common_cxx_version}.tar.gz
+Source308:         https://github.com/openresty/lua-nginx-module/archive/refs/tags/v%{lua_version}/lua-nginx-module-%{lua_version}.tar.gz
 
 # removes -Werror in upstream build scripts.  -Werror conflicts with
 # -D_FORTIFY_SOURCE=2 causing warnings to turn into errors.
@@ -101,6 +104,9 @@ BuildRequires:     pcre-devel
 BuildRequires:     zlib-devel
 %if %{with 51D}
 BuildRequires:     libatomic
+%endif
+%if %{with lua}
+BuildRequires:     luajit-devel
 %endif
 
 Requires:          nginx-filesystem = %{epoch}:%{version}-%{release}
@@ -208,6 +214,13 @@ Requires:          gd
 %description mod-http-image-filter
 %{summary}.
 
+%package mod-http-lua
+Summary:           Nginx HTTP lua module
+Requires:          nginx = %{epoch}:%{version}-%{release}
+
+%description mod-http-lua
+%{summary}.
+
 %package mod-http-naxsi
 Summary:           Nginx HTTP naxsi module
 Requires:          nginx = %{epoch}:%{version}-%{release}
@@ -276,10 +289,10 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 #{gpgverify} --keyring='%{_builddir}/%{name}.gpg' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %autosetup -p1
 # https://bugs.centos.org/view.php?id=17300
-%setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307
+%setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307 -a 308
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 (cd device-detection-nginx-%{fiftyoned_version}; patch -p1 < %{SOURCE1000})
-%if 0%{?rhel} > 0 && 0%{?rhel} >= 9
+%if 0%{?rhel} > 0 && 0%{?rhel} >= 8
 (cd naxsi-%{naxsi_version}; patch -p1 < %{SOURCE1001})
 %endif
 
@@ -314,6 +327,14 @@ export DESTDIR=%{buildroot}
 # So the passenger module finds openssl 1.1
 export EXTRA_CXXFLAGS="-I%{_includedir}/openssl11"
 export EXTRA_LDFLAGS="-L%{_libdir}/openssl11"
+%endif
+cc_opt="%{optflags} $(pcre-config --cflags)"
+%if %{with 51D}
+cc_opt="${cc_opt} -std=gnu11 -fcommon"
+%endif
+%if %{with lua}
+cc_opt="${cc_opt} $(pkg-config --cflags luajit)"
+ld_opt="$(pkg-config --libs luajit)"
 %endif
 if ! ./configure \
     --prefix=%{_datadir}/nginx \
@@ -376,6 +397,9 @@ if ! ./configure \
 %if %{with 51D}
     --add-dynamic-module=device-detection-nginx-%{fiftyoned_version}/51Degrees_module \
 %endif
+%if %{with lua}
+    --add-dynamic-module=lua-nginx-module-%{lua_version} \
+%endif
     --with-mail=dynamic \
     --with-mail_ssl_module \
     --with-pcre \
@@ -384,12 +408,8 @@ if ! ./configure \
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-threads \
-%if %{with 51D}
-    --with-cc-opt="%{optflags} $(pcre-config --cflags) -std=gnu11 -fcommon" \
-%else
-    --with-cc-opt="%{optflags} $(pcre-config --cflags)" \
-%endif
-    --with-ld-opt="$nginx_ldopts"; then
+    --with-cc-opt="${cc_opt}" \
+    --with-ld-opt="${ld_opt}"; then
   : configure failed
   cat objs/autoconf.err
   exit 1
@@ -475,6 +495,10 @@ echo 'load_module "%{_libdir}/nginx/modules/ngx_http_geoip2_module.so";' \
 %endif
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_image_filter_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-http-image-filter.conf
+%if %{with lua}
+echo 'load_module "%{_libdir}/nginx/modules/ngx_http_lua_module.so";' \
+    > %{buildroot}%{_datadir}/nginx/modules/mod-http-lua.conf
+%endif
 %if %{with naxsi}
 echo 'load_module "%{_libdir}/nginx/modules/ngx_http_naxsi_module.so";' \
     > %{buildroot}%{_datadir}/nginx/modules/mod-http-naxsi.conf
@@ -534,6 +558,11 @@ if [ $1 -eq 1 ]; then
 fi
 
 %post mod-http-image-filter
+if [ $1 -eq 1 ]; then
+    /usr/bin/systemctl reload nginx.service >/dev/null 2>&1 || :
+fi
+
+%post mod-http-lua
 if [ $1 -eq 1 ]; then
     /usr/bin/systemctl reload nginx.service >/dev/null 2>&1 || :
 fi
@@ -662,6 +691,12 @@ fi
 %{_datadir}/nginx/modules/mod-http-image-filter.conf
 %{_libdir}/nginx/modules/ngx_http_image_filter_module.so
 
+%if %{with lua}
+%files mod-http-lua
+%{_datadir}/nginx/modules/mod-http-lua.conf
+%{_libdir}/nginx/modules/ngx_http_lua_module.so
+%endif
+
 %if %{with naxsi}
 %files mod-http-naxsi
 %config(noreplace) %{_sysconfdir}/nginx/naxsi_core.rules
@@ -702,12 +737,15 @@ fi
 
 
 %changelog
+* Mon Dec  5 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex4
+- Include lua module, which is basically openresty.
+
 * Wed Nov 30 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex3
 - Provide working upgrade path from RHEL9's packages.
 
 * Tue Nov 29 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex2
 - Add -lm to 51Degrees link to fix missing powf symbol.
-- Enable naxsi pcre2 patch on el9+ only, to avoid breaking build on older el.
+- Enable naxsi pcre2 patch on el8+ only, to avoid breaking build on el7.
 
 * Wed Nov 23 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex1
 - Update to 1.22.1.
