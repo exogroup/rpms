@@ -1,15 +1,23 @@
 %undefine _missing_build_ids_terminate_build
 
+%ifarch x86_64
+%define binarch amd64
+%endif
+%ifarch aarch64
+%define binarch arm64
+%endif
+
 Summary: Tool for service discovery and configuration
 Name: consul
-Version: 1.11.4
+Version: 1.12.6
 Release: 1
 License: MPLv2.0
 URL: https://consul.io/
-Source0: https://releases.hashicorp.com/consul/%{version}/consul_%{version}_linux_amd64.zip
+Source0: https://releases.hashicorp.com/consul/%{version}/consul_%{version}_linux_%{binarch}.zip
 Source1: consul.hcl.template
 Source2: consul.service
 Source3: consul.bash_completion
+ExclusiveArch: x86_64 aarch64
 %{?systemd_requires}
 
 %description
@@ -62,6 +70,10 @@ getent passwd consul >/dev/null || \
 
 
 %changelog
+* Mon Oct 31 2022 Matthias Saou <matthias@saou.eu> 1.12.6-1
+- Update to 1.12.6.
+- Support aarch64.
+
 * Wed Apr  6 2022 Matthias Saou <matthias@saou.eu> 1.11.4-1
 - Update to 1.11.4.
 
