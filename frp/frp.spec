@@ -8,7 +8,7 @@
 %endif
 
 Name: frp
-Version: 0.45.0
+Version: 0.46.0
 Release: 1
 License: ASL 2.0
 URL: https://github.com/fatedier/frp
@@ -102,6 +102,9 @@ getent passwd frp >/dev/null || \
 
 
 %changelog
+* Wed Jan 04 2023 Michele Brodoloni <michele@exads.com> - 0.46.0-1
+- Update to 0.46.0
+
 * Tue Dec 13 2022 Michele Brodoloni <michele@exads.com> - 0.45.0-1
 - Initial release 0.45.0
 
