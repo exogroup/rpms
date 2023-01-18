@@ -1,0 +1,71 @@
+# The SSL test are failing correctly. Fro more explanation, see:
+# https://jira.mariadb.org/browse/MDEV-8404?focusedCommentId=84275&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-84275
+main.ssl_7937                                : #1399847
+main.ssl_8k_key                              :
+main.ssl_crl                                 : #1399847
+
+# ------------------------------
+# Tests that fails because of 'Self Signed Certificate in the Certificate Chain'
+perfschema.cnf_option                        :
+
+rpl.rpl_row_img_blobs                        :
+rpl.rpl_row_img_eng_min                      :
+rpl.rpl_row_img_eng_noblob                   :
+
+sys_vars.slave_parallel_threads_basic        :
+
+# ------------------------------
+# Expected to fail, the plugin is not build with server, but 'mariadb-connector-c' instead
+plugins.auth_ed25519                         :
+plugins.multiauth                            :
+
+# ------------------------------
+perfschema.nesting                           : #1399847
+perfschema.socket_summary_by_instance_func   : #1399847
+perfschema.socket_summary_by_event_name_func :
+
+# ------------------------------
+# Fails since 10.1.12
+innodb.innodb_defrag_binlog                  :
+
+# Fails everywhere since 10.2.15
+main.userstat				     :
+
+# Fails everywhere since 10.4.11
+main.events_bugs                             :
+sys_vars.tcp_nodelay                         :
+
+# Fails on i686
+encryption.innodb-redo-badkey                :
+
+# Fails since 10.5.2
+main.mysqld--help2                           :
+disks.disks                                  :
+disks.disks_notembedded                      :
+
+# Fails since 10.5.3
+main.mysqld--help-aria                       :
+
+# Fails since 10.5.4
+main.ssl_system_ca                           :
+
+# Fails since 10.5.7
+innodb.innodb_wl6326_big                     :
+plugins.feedback_plugin_load                 :
+
+# Fails on all architectures since 10.5.13
+oqgraph.regression_mdev6345                  :
+type_test.type_test_double                   :
+# Fails on i686 since 10.5.13
+oqgraph.general-innodb                       :
+oqgraph.general-Aria                         :
+oqgraph.general-MyISAM                       :
+oqgraph.legacy_upgrade                       :
+oqgraph.regression_1133093                   :
+oqgraph.regression_1196036                   :
+oqgraph.regression_1213120                   :
+
+# Fails on all architectures since 10.5.18
+main.information_schema                      :
+main.loadxml                                 :
+main.lock_kill                               :
