@@ -1,0 +1,16 @@
+diff -Naupr check_mysql_health-2.1.3.orig/plugins-scripts/Nagios/DBD/MySQL/Server/Instance.pm check_mysql_health-2.1.3/plugins-scripts/Nagios/DBD/MySQL/Server/Instance.pm
+--- check_mysql_health-2.1.3.orig/plugins-scripts/Nagios/DBD/MySQL/Server/Instance.pm	2010-10-01 17:31:20.000000000 +0200
++++ check_mysql_health-2.1.3/plugins-scripts/Nagios/DBD/MySQL/Server/Instance.pm	2010-11-22 11:30:24.027064670 +0100
+@@ -284,10 +284,10 @@ sub nagios {
+       my $refkey = 'querycache_hitrate'.($params{lookback} ? '_now' : '');
+       if ((lc $self->{have_query_cache} eq 'yes') && ($self->{query_cache_size})) {
+         $self->add_nagios(
+-            $self->check_thresholds($self->{$refkey}, "90:", "80:"),
++            $self->check_thresholds($self->{$refkey}, "40:", "10:"),
+             sprintf "query cache hitrate %.2f%%", $self->{$refkey});
+       } else {
+-        $self->check_thresholds($self->{$refkey}, "90:", "80:");
++        $self->check_thresholds($self->{$refkey}, "40:", "10:");
+         $self->add_nagios_ok(
+             sprintf "query cache hitrate %.2f%% (because it's turned off)",
+             $self->{querycache_hitrate});
