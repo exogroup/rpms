@@ -31,10 +31,10 @@
 %global naxsi_version 1.3
 %global passenger_version 6.0.15
 %global brotli_version 1.0.0rc
-%global fiftyoned_version 4.4.3
-%global fiftyoned_cxx_version 4.4.8
-%global fiftyoned_common_cxx_version 4.4.6
-%global lua_version 0.10.22
+%global fiftyoned_version 4.4.4
+%global fiftyoned_cxx_version 4.4.11
+%global fiftyoned_common_cxx_version 4.4.7
+%global lua_version 0.10.23
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -45,7 +45,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.22.1
-Release:           1%{?dist}.ex4
+Release:           1%{?dist}.ex5
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -737,6 +737,9 @@ fi
 
 
 %changelog
+* Wed Feb 15 2023 Matthias SAou <matthias@saou.eu> 1:1.22.1-1.ex5
+- Update 51Degrees and lua modules.
+
 * Mon Dec  5 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex4
 - Include lua module, which is basically openresty.
 
