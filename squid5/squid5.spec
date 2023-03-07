@@ -1,7 +1,7 @@
 %define __perl_requires %{SOURCE98}
 
 Name:     squid5
-Version:  5.7
+Version:  5.8
 Release:  1%{?dist}.ex1
 Summary:  The Squid proxy caching server
 Epoch:    7
@@ -348,6 +348,9 @@ fi
 
 
 %changelog
+* Tue Mar  7 2023 Matthias Saou <matthias@saou.eu> 7:5.8-1.ex1
+- Update to 5.8.
+
 * Mon Sep 19 2022 Matthias Saou <matthias@saou.eu> 7:5.7-1.ex1
 - Update to 5.7.
 
