@@ -1,0 +1,11 @@
+[Unit]
+Description=Couchbase Exporter
+After=network-online.target couchbase-server.service
+
+[Service]
+User=couchbase_exporter
+EnvironmentFile=/etc/sysconfig/couchbase_exporter
+ExecStart=/usr/sbin/couchbase_exporter --couchbase-address ${COUCHBASE_ADDRESS} --couchbase-port ${COUCHBASE_PORT} --couchbase-username ${COUCHBASE_USERNAME} --couchbase-password ${COUCHBASE_PASSWORD} --server-address ${SERVER_ADDRESS} --server-port ${SERVER_PORT} --per-node-refresh ${PER_NODE_REFRESH}
+
+[Install]
+WantedBy=multi-user.target

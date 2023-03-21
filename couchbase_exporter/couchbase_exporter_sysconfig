@@ -1,0 +1,9 @@
+# Configuration file for the couchbase_exporter service
+
+COUCHBASE_ADDRESS=localhost
+COUCHBASE_PORT=8091
+COUCHBASE_USERNAME=Administrator
+COUCHBASE_PASSWORD=password
+SERVER_ADDRESS=127.0.0.1
+SERVER_PORT=9091
+PER_NODE_REFRESH=5
