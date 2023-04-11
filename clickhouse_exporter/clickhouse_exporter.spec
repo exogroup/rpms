@@ -1,19 +1,18 @@
-%global commit 638809a48ff43b63bae006f63d2d8387743b8d90
-%global gittag HEAD
+%global commit 7ab68be424d34180d23a5625cadb5d8fdee59770
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global daemon_name clickhouse_exporter
 
 Name:             clickhouse_exporter
 Version:          0
-Release:          0.2.%{shortcommit}%{?dist}
+Release:          0.3.%{shortcommit}
 Summary:          Prometheus exporter for the metrics available in ClickHouse
 Group:            Applications/System
 License:          MIT
-URL:              https://github.com/f1yegor/clickhouse_exporter
+URL:              https://github.com/ClickHouse/clickhouse_exporter
 Source0:          %{name}-%{shortcommit}.tar.gz
 Source1:          clickhouse_exporter.service
-Patch0:           fix_metrics_values_atoi.patch
 BuildRequires:    golang
+BuildRequires:    systemd
 %{?systemd_requires}
 
 %description
@@ -23,18 +22,19 @@ them via HTTP for Prometheus consumption.
 
 %prep
 %setup -n clickhouse_exporter-%{shortcommit}
-%patch0 -p1 -d src/github.com/f1yegor/clickhouse_exporter
+
 
 %build
 export GOPATH=$(pwd):%{gopath}
-cd src/github.com/f1yegor/clickhouse_exporter
+export GO111MODULE=on
+cd src/github.com/ClickHouse/clickhouse_exporter
 # Workaround for missing build id which makes debuginfo extraction fail
 function gobuild { go build -a -ldflags "-B 0x$(head -c20 /dev/urandom|od -An -tx1|tr -d ' \n')" -v -x "$@"; }
 gobuild -a -o clickhouse_exporter .
 
 
 %install
-install -m 0755 -D src/github.com/f1yegor/clickhouse_exporter/clickhouse_exporter %{buildroot}/usr/sbin/clickhouse_exporter
+install -m 0755 -D src/github.com/ClickHouse/clickhouse_exporter/clickhouse_exporter %{buildroot}/usr/sbin/clickhouse_exporter
 install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/%{daemon_name}.service
 
 
@@ -63,6 +63,11 @@ getent passwd clickhouse_exporter >/dev/null || \
 
 
 %changelog
+* Tue Apr 11 2023 Matthias Saou <matthias@saou.eu> 0.0-3.7ab68be4
+- Update to the latest upstream code from ClickHouse org to fix v23+ errors.
+- Switch to using go modules.
+- Drop no longer needed patch.
+
 * Mon Feb 15 2021 Michele Brodoloni <michele@exads.com> - 0-0.2.638809a
 - Compatibility patch for CH v20+
 
