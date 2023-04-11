@@ -1,0 +1,10 @@
+[Unit]
+Description=Clickhouse Exporter
+After=network-online.target clickhouse-server.service
+
+[Service]
+User=clickhouse_exporter
+ExecStart=/usr/sbin/clickhouse_exporter
+
+[Install]
+WantedBy=multi-user.target
