@@ -15,11 +15,12 @@ URL: https://github.com/let-us-go/zkcli
 Source0: https://github.com/let-us-go/zkcli/releases/download/v%{version}/zkcli-%{version}-linux-amd64.tar.gz
 Source1: https://github.com/let-us-go/zkcli/releases/download/v%{version}/zkcli-%{version}-linux-arm64.tar.gz
 Summary: An interactive Zookeeper client written in Go
-ExclusiveArch: x86_64
+ExclusiveArch: x86_64 aarch64
 
 
 %description
 An interactive Zookeeper client written in Go
+
 
 %prep
 %setup -T -n zkcli-%{version}-linux-%{platform} -q -b %{source_id}
