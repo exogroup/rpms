@@ -28,13 +28,13 @@
 
 # Custom
 %global geoip2_version 3.4
-%global naxsi_version 1.3
-%global passenger_version 6.0.15
+%global naxsi_version 1.4
+%global passenger_version 6.0.17
 %global brotli_version 1.0.0rc
-%global fiftyoned_version 4.4.4
-%global fiftyoned_cxx_version 4.4.11
-%global fiftyoned_common_cxx_version 4.4.7
-%global lua_version 0.10.23
+%global fiftyoned_version 4.4.9
+%global fiftyoned_cxx_version 4.4.18
+%global fiftyoned_common_cxx_version 4.4.17
+%global lua_version 0.10.24
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -44,8 +44,8 @@
 
 Name:              nginx
 Epoch:             1
-Version:           1.22.1
-Release:           1%{?dist}.ex5
+Version:           1.24.0
+Release:           1%{?dist}.ex1
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -70,7 +70,7 @@ Source104:         50x.html
 Source200:         README.dynamic
 Source210:         UPGRADE-NOTES-1.6-to-1.10
 Source301:         https://github.com/leev/ngx_http_geoip2_module/archive/%{geoip2_version}/ngx_http_geoip2_module-%{geoip2_version}.tar.gz
-Source302:         https://github.com/nbs-system/naxsi/archive/%{naxsi_version}/naxsi-%{naxsi_version}.tar.gz
+Source302:         https://github.com/wargio/naxsi/releases/download/%{naxsi_version}/naxsi-%{naxsi_version}-src-with-deps.tar.gz
 Source303:         https://github.com/phusion/passenger/archive/release-%{passenger_version}/passenger-release-%{passenger_version}.tar.gz
 Source304:         https://github.com/google/ngx_brotli/archive/v%{brotli_version}/ngx_brotli-%{brotli_version}.tar.gz
 Source305:         https://github.com/51Degrees/device-detection-nginx/archive/%{fiftyoned_version}/device-detection-nginx-%{fiftyoned_version}.tar.gz
@@ -87,7 +87,6 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 Patch1:            0002-fix-PIDFile-handling.patch
 
 Source1000:        device-detection-nginx-4.4.3-libatomic.patch
-Source1001:        naxsi-1.3-pcre2.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -289,12 +288,11 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 #{gpgverify} --keyring='%{_builddir}/%{name}.gpg' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %autosetup -p1
 # https://bugs.centos.org/view.php?id=17300
-%setup -q -D -T -c -a 301 -a 302 -a 303 -a 304 -a 305 -a 306 -a 307 -a 308
+%setup -q -D -T -c -a 301 -a 303 -a 304 -a 305 -a 306 -a 307 -a 308
+# Annoying source with top level files
+(mkdir naxsi-%{naxsi_version}; cd naxsi-%{naxsi_version}; tar xzf %{SOURCE302})
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 (cd device-detection-nginx-%{fiftyoned_version}; patch -p1 < %{SOURCE1000})
-%if 0%{?rhel} > 0 && 0%{?rhel} >= 8
-(cd naxsi-%{naxsi_version}; patch -p1 < %{SOURCE1001})
-%endif
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 sed -i -e 's#KillMode=.*#KillMode=process#g' nginx.service
@@ -521,7 +519,7 @@ echo 'load_module "%{_libdir}/nginx/modules/ngx_stream_geoip2_module.so";' \
 %endif
 
 %if %{with naxsi}
-install -p -D -m 0644 naxsi-%{naxsi_version}/naxsi_config/naxsi_core.rules \
+install -p -D -m 0644 naxsi-%{naxsi_version}/naxsi_rules/naxsi_core.rules \
     %{buildroot}%{_sysconfdir}/nginx/
 %endif
 
@@ -737,7 +735,17 @@ fi
 
 
 %changelog
-* Wed Feb 15 2023 Matthias SAou <matthias@saou.eu> 1:1.22.1-1.ex5
+* Sun May 14 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex1
+- Update to 1.24.0.
+- Update Phusion Passenger to 6.0.17.
+- Update lua module to 0.10.24.
+- Update naxsi to 1.4 from wargio's fork (previous upstream is dead).
+- Update 51Degrees module to 4.4.9, common cxx to 4.4.17 and cxx to 4.4.18.
+
+* Tue Feb 28 2023 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex6
+- Update 51Degrees cxx sources.
+
+* Wed Feb 15 2023 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex5
 - Update 51Degrees and lua modules.
 
 * Mon Dec  5 2022 Matthias Saou <matthias@saou.eu> 1:1.22.1-1.ex4
