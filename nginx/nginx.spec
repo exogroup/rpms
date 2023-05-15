@@ -45,7 +45,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.24.0
-Release:           1%{?dist}.ex1
+Release:           1%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -331,8 +331,9 @@ cc_opt="%{optflags} $(pcre-config --cflags)"
 cc_opt="${cc_opt} -std=gnu11 -fcommon"
 %endif
 %if %{with lua}
-cc_opt="${cc_opt} $(pkg-config --cflags luajit)"
-ld_opt="$(pkg-config --libs luajit)"
+# Both expect a single value, the include path and the lib name
+export LUAJIT_INC="$(pkg-config --cflags luajit  | sed -e 's/-I//g')"
+export LUAJIT_LIB="$(pkg-config --libs luajit  | sed -e 's/-l//g')"
 %endif
 if ! ./configure \
     --prefix=%{_datadir}/nginx \
@@ -406,8 +407,7 @@ if ! ./configure \
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-threads \
-    --with-cc-opt="${cc_opt}" \
-    --with-ld-opt="${ld_opt}"; then
+    --with-cc-opt="${cc_opt}"; then
   : configure failed
   cat objs/autoconf.err
   exit 1
@@ -735,6 +735,9 @@ fi
 
 
 %changelog
+* Mon May 15 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex2
+- Fix wrong/useless luajit linking of the main binary.
+
 * Sun May 14 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex1
 - Update to 1.24.0.
 - Update Phusion Passenger to 6.0.17.

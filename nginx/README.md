@@ -9,3 +9,9 @@ package with a few additions:
  * [Brotli module](https://github.com/google/ngx_brotli)
  * [51Degrees module](https://github.com/51Degrees/Device-Detection/)
 
+For building the 51Degrees module on RHEL7 aarch64, this manual workaround
+is required:
+```
+ln -s libatomic.so.1 /usr/lib64/libatomic.so
+```
+
