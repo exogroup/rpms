@@ -45,7 +45,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.24.0
-Release:           1%{?dist}.ex4
+Release:           1%{?dist}.ex5
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -85,6 +85,11 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 # downstream patch - fix PIDFile race condition (rhbz#1869026)
 # rejected upstream: https://trac.nginx.org/nginx/ticket/1897
 Patch1:            0002-fix-PIDFile-handling.patch
+
+# openresty ssl patches, required by the lua module
+Source2000:        https://github.com/openresty/openresty/raw/master/patches/nginx-1.23.0-ssl_cert_cb_yield.patch
+Source2001:        https://github.com/openresty/openresty/raw/master/patches/nginx-1.23.0-ssl_sess_cb_yield.patch
+Source2002:        https://github.com/openresty/openresty/raw/master/patches/nginx-1.23.0-ssl_client_hello_cb_yield.patch
 
 Source1000:        device-detection-nginx-4.4.3-libatomic.patch
 Source1001:        lua-nginx-module-0.10.24-pcre.patch
@@ -300,6 +305,11 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 (cd device-detection-nginx-%{fiftyoned_version}; patch -p1 < %{SOURCE1000})
 (cd lua-nginx-module-%{lua_version}; patch -p1 < %{SOURCE1001})
+%if %{with lua}
+patch -p1 < %{SOURCE2000}
+patch -p1 < %{SOURCE2001}
+patch -p1 < %{SOURCE2002}
+%endif
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 sed -i -e 's#KillMode=.*#KillMode=process#g' nginx.service
@@ -741,6 +751,9 @@ fi
 
 
 %changelog
+* Thu May 18 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex5
+- Include the mandatory ssl patches when lua is enabled.
+
 * Thu May 18 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex4
 - Move the lua resty core & lrucache to their own packages.
 
