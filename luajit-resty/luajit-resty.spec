@@ -5,13 +5,14 @@ Name:           luajit-resty
 Version:        2.1.0
 %global apiver %(v=%{version}; echo ${v%.${v#[0-9].[0-9].}})
 %global srcver %{version}%{?rctag:-%{rctag}}
-Release:        0.2%{?date:_%{date}}%{?dist}
+Release:        0.3%{?date:_%{date}}%{?dist}
 Summary:        OpenResty version of the Just-In-Time Compiler for Lua
 License:        MIT
 URL:            https://github.com/openresty/luajit2/
 Source0:        https://github.com/openresty/luajit2/archive/refs/tags/v%{apiver}%{?date:-%{date}}/luajit2-%{apiver}%{?date:-%{date}}.tar.gz
 BuildRequires:  gcc
 BuildRequires:  make
+BuildRequires:  lua-rpm-macros
 # This is required by C modules
 Provides:       lua(abi) = 5.1
 
@@ -25,6 +26,7 @@ This is the official OpenResty branch of LuaJIT.
 %package devel
 Summary:        Development files for %{name}
 Requires:       %{name}%{?_isa} = %{version}-%{release}
+Requires:       lua-rpm-macros
 
 %description devel
 This package contains development files for %{name}.
@@ -90,6 +92,7 @@ make check || true
 %changelog
 * Thu May 18 2023 Matthias Saou <matthias@saou.eu> 2.1-0.2_20230410
 - Provide "lua(abi) = 5.1" required by C modules (cjson).
+- Build with lua-rpm-macros and require it from the devel sub-package.
 
 * Tue May 16 2023 Matthias Saou <matthias@saou.eu> 2.1-0.1_20230410
 - Fork Fedora spec as luajit-resty with OpenResty sources, used for nginx module.

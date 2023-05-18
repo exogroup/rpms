@@ -1,18 +1,16 @@
-%global luaver 5.1
-%global luaincludedir %{_includedir}
-%global lualibdir %{_libdir}/lua/%{luaver}
-%global luadatadir %{_datadir}/lua/%{luaver}
+%global lua_version 5.1
+%global lua_includedir %{_includedir}/luajit-2.1
 
 Summary: JSON support for Lua
-Name: lua-cjson
-Version: 2.1.0.9
-Release: 1%{?dist}
+Name: lua-resty-cjson
+Version: 2.1.0.12
+Release: 2%{?dist}
 License: MIT
 URL: https://github.com/openresty/lua-cjson/
 Source0: https://github.com/openresty/lua-cjson/archive/refs/tags/%{version}/lua-cjson-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: gcc
-BuildRequires: lua-devel
+BuildRequires: luajit-resty-devel
 
 %description
 Lua CJSON provides JSON support for Lua. Features:
@@ -30,18 +28,18 @@ This is the OpenResty fork, which icludes bugfixes and additions.
 
 %build
 make %{?_smp_mflags} CFLAGS="%{optflags}" \
-  LUA_INCLUDE_DIR="%{luaincludedir}" \
-  LUA_CMODULE_DIR="%{lualibdir}" \
-  LUA_MODULE_DIR="%{luadatadir}" \
+  LUA_INCLUDE_DIR="%{lua_includedir}" \
+  LUA_CMODULE_DIR="%{lua_libdir}" \
+  LUA_MODULE_DIR="%{lua_pkgdir}" \
   LUA_BIN_DIR="%{_bindir}"
 
 
 %install
 for target in install install-extra; do
 make $target DESTDIR=%{buildroot} \
-  LUA_INCLUDE_DIR="%{luaincludedir}" \
-  LUA_CMODULE_DIR="%{lualibdir}" \
-  LUA_MODULE_DIR="%{luadatadir}" \
+  LUA_INCLUDE_DIR="%{lua_includedir}" \
+  LUA_CMODULE_DIR="%{lua_libdir}" \
+  LUA_MODULE_DIR="%{lua_pkgdir}" \
   LUA_BIN_DIR="%{_bindir}"
 done
 
@@ -51,11 +49,15 @@ done
 %doc README.md
 %{_bindir}/json2lua
 %{_bindir}/lua2json
-%{lualibdir}/cjson.so
-%{luadatadir}/cjson/
+%{lua_libdir}/cjson.so
+%{lua_pkgdir}/cjson/
 
 
 %changelog
-* Thu May 18 2023 Matthias Saou <matthias@saou.eu> 2.1.0.9-1
+* Thu May 18 2023 Matthias Saou <matthias@saou.eu> 2.1.0.12-2
+- Remove jit from the name, back to the original one.
+- Leverage lua-rpm-macros provided macros.
+
+* Thu May 18 2023 Matthias Saou <matthias@saou.eu> 2.1.0.12-1
 - Initial RPM release.
 

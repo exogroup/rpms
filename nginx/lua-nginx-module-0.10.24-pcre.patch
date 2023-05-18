@@ -1,0 +1,12 @@
+diff -Naupr lua-nginx-module-0.10.24.orig/config lua-nginx-module-0.10.24/config
+--- lua-nginx-module-0.10.24.orig/config	2023-03-21 14:51:04.000000000 +0100
++++ lua-nginx-module-0.10.24/config	2023-05-16 20:03:02.926864073 +0200
+@@ -163,7 +163,7 @@ if [ $ngx_found = yes ]; then
+     NGX_LD_OPT="$ngx_lua_opt_L $NGX_LD_OPT"
+ 
+     ngx_module_incs="$ngx_module_incs $ngx_feature_path"
+-    ngx_module_libs="$ngx_module_libs $ngx_feature_libs"
++    ngx_module_libs="$ngx_module_libs $ngx_feature_libs -lpcre"
+ else
+     cat << END
+     $0: error: ngx_http_lua_module requires the LuaJIT library.

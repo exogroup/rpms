@@ -45,7 +45,7 @@
 Name:              nginx
 Epoch:             1
 Version:           1.24.0
-Release:           1%{?dist}.ex2
+Release:           1%{?dist}.ex4
 
 Summary:           A high performance web server and reverse proxy server
 # BSD License (two clause)
@@ -87,6 +87,7 @@ Patch0:            0001-remove-Werror-in-upstream-build-scripts.patch
 Patch1:            0002-fix-PIDFile-handling.patch
 
 Source1000:        device-detection-nginx-4.4.3-libatomic.patch
+Source1001:        lua-nginx-module-0.10.24-pcre.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -105,7 +106,7 @@ BuildRequires:     zlib-devel
 BuildRequires:     libatomic
 %endif
 %if %{with lua}
-BuildRequires:     luajit-devel
+BuildRequires:     luajit-resty-devel
 %endif
 
 Requires:          nginx-filesystem = %{epoch}:%{version}-%{release}
@@ -216,6 +217,11 @@ Requires:          gd
 %package mod-http-lua
 Summary:           Nginx HTTP lua module
 Requires:          nginx = %{epoch}:%{version}-%{release}
+# The original/upstream is missing some symbols
+Requires:          luajit-resty
+Requires:          lua-resty-core
+Requires:          lua-resty-lrucache
+Conflicts:         luajit
 
 %description mod-http-lua
 %{summary}.
@@ -293,6 +299,7 @@ cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
 (mkdir naxsi-%{naxsi_version}; cd naxsi-%{naxsi_version}; tar xzf %{SOURCE302})
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
 (cd device-detection-nginx-%{fiftyoned_version}; patch -p1 < %{SOURCE1000})
+(cd lua-nginx-module-%{lua_version}; patch -p1 < %{SOURCE1001})
 
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 sed -i -e 's#KillMode=.*#KillMode=process#g' nginx.service
@@ -412,7 +419,6 @@ if ! ./configure \
   cat objs/autoconf.err
   exit 1
 fi
-
 %make_build
 
 
@@ -735,6 +741,14 @@ fi
 
 
 %changelog
+* Thu May 18 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex4
+- Move the lua resty core & lrucache to their own packages.
+
+* Tue May 16 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex3
+- Include pcre patch to fix lua module linking.
+- Include required lua-resty-core & lua-resty-lrucache in lua sub-package.
+- Switch to using the OpenResty version of luajit, since it adds features.
+
 * Mon May 15 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex2
 - Fix wrong/useless luajit linking of the main binary.
 
