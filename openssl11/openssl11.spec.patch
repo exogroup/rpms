@@ -1,0 +1,39 @@
+--- openssl11.spec	2023-05-18 18:42:47.026839303 +0200
++++ openssl11.spec	2023-05-18 18:48:09.150113309 +0200
+@@ -22,7 +22,7 @@
+ Summary: Utilities from the general purpose cryptography library with TLS implementation
+ Name: openssl11
+ Version: 1.1.1k
+-Release: 5%{?dist}
++Release: 5%{?dist}.ex1
+ Epoch: 1
+ # We have to remove certain patented algorithms from the openssl source
+ # tarball with the hobble-openssl script which is included below.
+@@ -94,6 +94,8 @@
+ Patch104: openssl-1.1.1-cve-2023-0286-X400.patch
+ # EPEL specific changes
+ Patch900: openssl-1.1.1-fips-rand-el7.patch
++# OpenResty patch
++Patch1000: https://github.com/openresty/openresty/raw/master/patches/openssl-1.1.1f-sess_set_get_cb_yield.patch
+ 
+ License: OpenSSL and ASL 2.0
+ URL: http://www.openssl.org/
+@@ -212,6 +214,8 @@
+ 
+ %patch900 -p1 -b .fips-rand-el7
+ 
++%patch1000 -p1 -b .openresty
++
+ 
+ %build
+ # Required for $RPM_OPT_FLAGS changes
+@@ -523,6 +527,9 @@
+ %postun libs -p /sbin/ldconfig
+ 
+ %changelog
++* Thu May 18 2023 Matthias Saou <matthias@saou.eu> 1.1.1k-5.ex1
++- Include OpenResty mandatory nginx lua module patch.
++
+ * Sun Feb 19 2023 Robert Scheck <robert@fedoraproject.org> 1.1.1k-5
+ - backport from 1.1.1k-9: Fixed Timing Oracle in RSA Decryption
+   Resolves: CVE-2022-4304
