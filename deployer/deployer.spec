@@ -1,9 +1,9 @@
 %global recipes_ver 6.2.2
 
 Name:          deployer
-Version:       6.8.0
+Version:       6.9.0
 Summary:       Deployment tool with support for popular PHP frameworks
-Release:       2
+Release:       1
 License:       MIT
 URL:           https://deployer.org/
 Source0:       https://deployer.org/releases/v%{version}/deployer.phar
@@ -39,6 +39,9 @@ install -D -p -m 755 deployer.phar %{buildroot}%{_bindir}/%{name}
 
 
 %changelog
+* Fri May 19 2023 Matthias Saou <matthias@saou.eu> 6.9.0-1
+- Update to 6.9.0 for PHP 8 compatibility.
+
 * Fri May 14 2021 Michał Lisowski <michal@exads.com> - 6.8.0-2
 - php-cli is required at runtime
 
