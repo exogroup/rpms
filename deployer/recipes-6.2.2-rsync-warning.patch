@@ -1,0 +1,32 @@
+diff -Naupr recipes-6.2.2.orig/recipe/rsync.php recipes-6.2.2/recipe/rsync.php
+--- recipes-6.2.2.orig/recipe/rsync.php	2019-06-27 08:47:18.000000000 +0200
++++ recipes-6.2.2/recipe/rsync.php	2023-05-22 15:55:38.812251918 +0200
+@@ -31,7 +31,7 @@ set('rsync_dest', '{{release_path}}');
+ set('rsync_excludes', function () {
+     $config = get('rsync');
+     $excludes = $config['exclude'];
+-    $excludeFile = $config['exclude-file'];
++    $excludeFile = $config['exclude-file'] ?? false;
+     $excludesRsync = '';
+     foreach ($excludes as $exclude) {
+         $excludesRsync.=' --exclude=' . escapeshellarg($exclude);
+@@ -46,7 +46,7 @@ set('rsync_excludes', function () {
+ set('rsync_includes', function () {
+     $config = get('rsync');
+     $includes = $config['include'];
+-    $includeFile = $config['include-file'];
++    $includeFile = $config['include-file'] ?? false;
+     $includesRsync = '';
+     foreach ($includes as $include) {
+         $includesRsync.=' --include=' . escapeshellarg($include);
+@@ -61,8 +61,8 @@ set('rsync_includes', function () {
+ set('rsync_filter', function () {
+     $config = get('rsync');
+     $filters = $config['filter'];
+-    $filterFile = $config['filter-file'];
+-    $filterPerDir = $config['filter-perdir'];
++    $filterFile = $config['filter-file'] ?? false;
++    $filterPerDir = $config['filter-perdir'] ?? false;
+     $filtersRsync = '';
+     foreach ($filters as $filter) {
+         $filtersRsync.=" --filter='$filter'";

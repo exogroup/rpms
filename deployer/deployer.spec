@@ -3,11 +3,12 @@
 Name:          deployer
 Version:       6.9.0
 Summary:       Deployment tool with support for popular PHP frameworks
-Release:       1
+Release:       2
 License:       MIT
 URL:           https://deployer.org/
 Source0:       https://deployer.org/releases/v%{version}/deployer.phar
 Source1:       https://github.com/deployphp/recipes/archive/%{recipes_ver}/recipes-%{recipes_ver}.tar.gz
+Patch0:        recipes-6.2.2-rsync-warning.patch
 BuildArch:     noarch
 BuildRequires: php-cli >= 7.2
 Requires:      php-cli >= 7.2
@@ -19,6 +20,7 @@ frameworks such as Laravel, Symfony, Zend Framework and many more.
 
 %prep
 %setup -q -T -c -a 1
+%patch0 -p0
 mkdir contrib-recipes
 mv recipes-%{recipes_ver}/recipe contrib-recipes/
 cp %{SOURCE0} .
@@ -39,6 +41,9 @@ install -D -p -m 755 deployer.phar %{buildroot}%{_bindir}/%{name}
 
 
 %changelog
+* Mon May 22 2023 Matthias Saou <matthias@saou.eu> 6.9.0-2
+- Include patch to silence PHP 8.1 warnings on recipe/rsync.php.
+
 * Fri May 19 2023 Matthias Saou <matthias@saou.eu> 6.9.0-1
 - Update to 6.9.0 for PHP 8 compatibility.
 
