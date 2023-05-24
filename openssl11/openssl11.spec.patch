@@ -1,15 +1,15 @@
---- openssl11.spec	2023-05-18 18:42:47.026839303 +0200
-+++ openssl11.spec	2023-05-18 18:48:09.150113309 +0200
+--- openssl11.spec
++++ openssl11.spec
 @@ -22,7 +22,7 @@
  Summary: Utilities from the general purpose cryptography library with TLS implementation
  Name: openssl11
  Version: 1.1.1k
 -Release: 5%{?dist}
-+Release: 5%{?dist}.ex1
++Release: 5%{?dist}.ex2
  Epoch: 1
  # We have to remove certain patented algorithms from the openssl source
  # tarball with the hobble-openssl script which is included below.
-@@ -94,6 +94,8 @@
+@@ -94,6 +94,8 @@ Patch103: openssl-1.1.1-cve-2023-0215-BIO-UAF.patch
  Patch104: openssl-1.1.1-cve-2023-0286-X400.patch
  # EPEL specific changes
  Patch900: openssl-1.1.1-fips-rand-el7.patch
@@ -18,7 +18,16 @@
  
  License: OpenSSL and ASL 2.0
  URL: http://www.openssl.org/
-@@ -212,6 +214,8 @@
+@@ -110,7 +112,7 @@ BuildRequires: perl(FindBin), perl(lib), perl(File::Compare), perl(File::Copy)
+ Requires: coreutils
+ Requires: openssl11-libs%{?_isa} = %{epoch}:%{version}-%{release}
+ # Required for $RPM_OPT_FLAGS changes
+-BuildRequires: devtoolset-8-toolchain
++BuildRequires: devtoolset-10-toolchain
+ 
+ %description
+ The OpenSSL toolkit provides support for secure communications between
+@@ -212,10 +214,12 @@ cp %{SOURCE13} test/
  
  %patch900 -p1 -b .fips-rand-el7
  
@@ -27,10 +36,27 @@
  
  %build
  # Required for $RPM_OPT_FLAGS changes
-@@ -523,6 +527,9 @@
+-. /opt/rh/devtoolset-8/enable
++. /opt/rh/devtoolset-10/enable
+ 
+ # Figure out which flags we want to use.
+ # default
+@@ -311,7 +315,7 @@ done
+ 
+ %check
+ # Required for $RPM_OPT_FLAGS changes
+-. /opt/rh/devtoolset-8/enable
++. /opt/rh/devtoolset-10/enable
+ 
+ # Verify that what was compiled actually works.
+ 
+@@ -523,6 +527,12 @@ rm -rf $RPM_BUILD_ROOT{%{_sysconfdir}/pki/CA/,{%{_bindir},%{_mandir}/man1}/{CA.p
  %postun libs -p /sbin/ldconfig
  
  %changelog
++* Wed May 24 2023 Matthias Saou <matthias@saou.eu> 1.1.1k-5.ex2
++- Update from devtoolset 8 to 10, required for aarch64.
++
 +* Thu May 18 2023 Matthias Saou <matthias@saou.eu> 1.1.1k-5.ex1
 +- Include OpenResty mandatory nginx lua module patch.
 +
