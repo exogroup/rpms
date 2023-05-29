@@ -1,14 +1,10 @@
 Summary: Show a logo with some system info on the console
 Name: linux_logo
-Version: 6.0
+Version: 6.01
 Release: 1%{?dist}
 License: GPLv2
 URL: http://www.deater.net/weave/vmwprod/linux_logo/
 Source: http://www.deater.net/weave/vmwprod/linux_logo/linux_logo-%{version}.tar.gz
-Patch0: linux_logo-6.0-sort-find-logos.patch
-Patch1: linux_logo-6.0-amd-zen2-zen3.patch
-Patch2: linux_logo-6.0-intel.patch
-Patch3: linux_logo-6.0-strncpy-warning.patch
 BuildRequires: gcc
 BuildRequires: gettext
 BuildRequires: which
@@ -21,10 +17,6 @@ files or executed upon login.
 
 %prep
 %setup -q
-%patch0 -p1
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
 
 
 %build
@@ -47,6 +39,10 @@ make install PREFIX=%{buildroot}%{_prefix}
 
 
 %changelog
+* Tue May  9 2023 Matthias Saou <matthias@saou.eu> 6.01-1
+- Update to 6.01.
+- Drop all upstreamed or obsoleted patches (yup, *all*!).
+
 * Tue Apr 19 2022 Matthias Saou <matthias@saou.eu> 6.0-1
 - Update to 6.0.
 - Drop all upstreamed or obsoleted patches.
