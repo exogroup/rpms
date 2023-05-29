@@ -1,10 +1,10 @@
 # Either 'libev' (recommended), 'libuv' or 'libevent'
 %global eventlib libev
 
-# Git submodules
-%global commit_common 4c4bf86e0e1861081872c548bbe00520029dcb89
+# Git submodules - git submodule status
+%global commit_common 551d2856e04c1015858bbe4c8d74ed19c82e1871
 %global shortc_common %(c=%{commit_common}; echo ${c:0:7})
-%global commit_modlua 57ee412f1089a9c2557b4e566b9dbf33fdbbfbbe
+%global commit_modlua 15ecea2c50b515744c2f55ab17c63b951d8baf2e
 %global shortc_modlua %(c=%{commit_modlua}; echo ${c:0:7})
 %global commit_lua    e0725f73702f6d1cebd7042064d6303a583b6fd6
 %global shortc_lua    %(c=%{commit_lua};    echo ${c:0:7})
@@ -15,8 +15,8 @@
 %bcond_without luajit
 
 Summary: Aerospike C Client Shared Library
-Name: compat-aerospike-client-c
-Version: 4.6.20
+Name: libaerospike
+Version: 6.4.1
 Release: 1%{?dist}
 License: ASL 2.0
 URL: https://github.com/aerospike/aerospike-client-c/
@@ -26,6 +26,9 @@ Source2: https://github.com/aerospike/aerospike-mod-lua/archive/%{commit_modlua}
 Source3: https://github.com/aerospike/lua/archive/%{commit_lua}/lua-%{shortc_lua}.tar.gz
 Source4: https://github.com/aerospike/luajit/archive/%{commit_luajit}/luajit-%{shortc_luajit}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires: make
+BuildRequires: gcc
+BuildRequires: zlib-devel
 BuildRequires: openssl-devel
 BuildRequires: %{eventlib}-devel
 
@@ -90,6 +93,9 @@ cp -a target/*/lib/libaerospike.* %{buildroot}%{_libdir}/
 
 
 %changelog
-* Thu Mar  4 2021 Matthias Saou <matthias@saou.eu> 4.6.20-1
+* Mon May 29 2023 Matthias Saou <matthias@saou.eu> 6.4.1-1
+- Update to 6.4.1.
+
+* Tue Mar  2 2021 Matthias Saou <matthias@saou.eu> 5.1.0-1
 - Initial RPM release.
 
