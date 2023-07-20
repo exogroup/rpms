@@ -1,0 +1,87 @@
+From f06a7cb95d8da019220bdf1673d6034053c3ba89 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Micha=C5=82=20Lisowski?= <lisu@riseup.net>
+Date: Wed, 25 Mar 2020 13:55:17 +0100
+Subject: [PATCH] ZOOKEEPER-3770: Monitoring script support for 3.6
+
+---
+ .../zookeeper-contrib-monitoring/README       |  6 ++++
+ .../check_zookeeper.py                        | 31 +++++++++++++++++--
+ 2 files changed, 34 insertions(+), 3 deletions(-)
+
+diff --git a/zookeeper-contrib/zookeeper-contrib-monitoring/README b/zookeeper-contrib/zookeeper-contrib-monitoring/README
+index 81521fcb0e..3ef8ed236b 100644
+--- a/zookeeper-contrib/zookeeper-contrib-monitoring/README
++++ b/zookeeper-contrib/zookeeper-contrib-monitoring/README
+@@ -36,6 +36,12 @@ zk_approximate_data_size    41
+ zk_open_file_descriptor_count   20
+ zk_max_file_descriptor_count    1024
+ 
++Note that since version 3.5.3, some 4letterword commands have to be white
++listed in zookeeper configuration file by adding the following line:
++```
++4lw.commands.whitelist=mntr,ruok,stat
++```
++
+ Python 2.6 (maybe it works on previous version but it's not tested yet).
+ 
+ In a nutshell
+diff --git a/zookeeper-contrib/zookeeper-contrib-monitoring/check_zookeeper.py b/zookeeper-contrib/zookeeper-contrib-monitoring/check_zookeeper.py
+index cff6a1f261..d43ea89c91 100755
+--- a/zookeeper-contrib/zookeeper-contrib-monitoring/check_zookeeper.py
++++ b/zookeeper-contrib/zookeeper-contrib-monitoring/check_zookeeper.py
+@@ -28,6 +28,7 @@
+ import logging
+ import re
+ import subprocess
++import time
+ 
+ from StringIO import StringIO
+ from optparse import OptionParser, OptionGroup
+@@ -65,7 +66,7 @@ def analyze(self, opts, cluster_stats):
+         for host, stats in cluster_stats.items():
+             if opts.key in stats:
+ 
+-                value = stats[opts.key]
++                value = float(stats[opts.key])
+                 values.append('%s=%s;%s;%s' % (host, value, warning, critical))
+ 
+                 if warning >= value > critical or warning <= value < critical:
+@@ -189,12 +190,36 @@ def _send_cmd(self, cmd):
+         s.settimeout(self._timeout)
+ 
+         s.connect(self._address)
++        s.setblocking(0)
+         s.send(cmd)
+ 
+-        data = s.recv(2048)
++        total_data=[];
++        data='';
++        begin=time.time()
++        while 1:
++            # If we got some data, then break after timeout
++            if total_data and time.time()-begin > self._timeout:
++                break
++
++            # If we got no data at all, wait a little longer, twice the timeout
++            elif time.time()-begin > self._timeout*2:
++                break
++
++            try:
++                data = s.recv(16384)
++                if data:
++                    total_data.append(data)
++                    # Change the beginning time for measurement
++                    begin=time.time()
++                else:
++                    # Sleep for sometime to indicate a gap
++                    time.sleep(0.1)
++            except:
++                pass
++
+         s.close()
+ 
+-        return data
++        return ''.join(total_data)
+ 
+     def _parse(self, data):
+         """ Parse the output from the 'mntr' 4letter word command """
