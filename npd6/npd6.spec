@@ -1,13 +1,15 @@
 Summary: Neighbor Proxy Daemon for IPv6
 Name: npd6
 Version: 1.1.0
-Release: 3%{?dist}
+Release: 4%{?dist}
 License: GPLv3+
 Group: System Environment/Daemons
 URL: https://github.com/npd6/npd6
-Source0: https://github.com/npd6/npd6/archive/%{version}.tar.gz
+Source0: https://github.com/npd6/npd6/archive/%{version}/npd6-%{version}.tar.gz
 Source1: npd6.service
+Patch0: npd6-1.1.0-sysctl-removal.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
+BuildRequires: gcc
 BuildRequires: systemd
 %{?systemd_requires}
 
@@ -18,11 +20,13 @@ by a gateway routing device.
 
 %prep
 %setup -q
+%patch0 -p1
 
 
 %build
 # The -c is required or the build fails, taken from the Makefile
-make %{?_smp_mflags} CFLAGS="-c %{optflags}"
+# The -fcommon is required to fix link errors on el9+
+make %{?_smp_mflags} CFLAGS="-c %{optflags} -fcommon"
 
 
 %install
@@ -56,6 +60,11 @@ install -D -p -m 0644 %{SOURCE1} %{buildroot}%{_unitdir}/npd6.service
 
 
 %changelog
+* Tue Aug 29 2023 Matthias Saou <matthias@saou.eu> 1.1.0-4
+- Add gcc BR.
+- Include patch to remove obsolete sysctl include (removed from glibc 2.32).
+- Compile with -fcommon to fix "multiple definition" ld errors.
+
 * Wed Aug 11 2021 Matthias Saou <matthias@saou.eu> 1.1.0-3
 - Fix service file's missing Install section.
 
