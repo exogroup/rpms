@@ -1,0 +1,12 @@
+[Unit]
+Description=Garage Data Store
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=garage
+EnvironmentFile=/etc/sysconfig/garage
+ExecStart=/usr/sbin/garage server
+
+[Install]
+WantedBy=multi-user.target
