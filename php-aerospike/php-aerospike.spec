@@ -3,21 +3,18 @@
 
 %{?scl:          %scl_package         php-aerospike}
 
-%global gh_commit   f6931abc8826e48df71cf9c778bd5657ada13b41
+%global gh_commit   e37a8a1c404f516d5261da5cb8c7108b79561a4e
 %global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
-%global gh_date     20200729
+%global gh_date     20230918
 %global gh_owner    aerospike
-%global gh_project  aerospike-client-php
+%global gh_project  php-client
 %global pecl_name   aerospike
 %global with_zts    0%{?_with_zts:%{?__ztsphp:1}}
 %global ini_name    40-%{pecl_name}.ini
 
-# Log level TRACE|DEBUG|INFO|WARN|ERROR|OFF
-%define as_log_level OFF
-
 Summary:       Aerospike PHP Client
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       7.5.2
+Version:       0.1.0
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
@@ -25,14 +22,15 @@ Release:       1%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_V
 %endif
 License:       ASL 2.0
 URL:           https://github.com/%{gh_owner}/%{gh_project}
-Source0:       https://github.com/%{gh_owner}/%{gh_project}/archive/%{gh_commit}/%{gh_project}-%{version}-%{gh_short}.tar.gz
+# We build a self-contained tarball with prep-source.sh for offline build
+Source0:       %{gh_project}-%{version}-%{gh_short}-vendor.tar.gz
+Source99:      prep-source.sh
 
 BuildRequires: %{?dtsprefix}gcc
-BuildRequires: %{?scl_prefix}php-devel > 7
-#BuildRequires: %{?scl_prefix}php-tokenizer
-BuildRequires: compat-aerospike-client-c-devel >= 4.6.0
-BuildRequires: compat-aerospike-client-c-devel < 5.0.0
-BuildRequires: libev-devel
+BuildRequires: %{?scl_prefix}php-devel > 8.1
+BuildRequires: cargo
+# For ext-php-rs
+BuildRequires: clang-devel
 
 Requires:      %{?scl_prefix}php(zend-abi) = %{php_zend_api}
 Requires:      %{?scl_prefix}php(api) = %{php_core_api}
@@ -52,8 +50,9 @@ Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSIO
 
 
 %prep
-%setup -q -n %{gh_project}-%{gh_commit}
-mv src NTS
+%setup -q -n %{gh_project}-%{gh_commit}-vendor
+mkdir NTS
+mv Cargo.* src NTS/
 
 %if %{with_zts}
 # duplicate for ZTS build
@@ -69,26 +68,14 @@ EOF
 
 %build
 %{?dtsenable}
-# Replicate build.sh overrides
-CFLAGS="%{optflags} -std=gnu99 -D__AEROSPIKE_PHP_CLIENT_LOG_LEVEL__=AS_LOG_LEVEL_%{as_log_level}"
-LDFLAGS="-laerospike -lcrypto -lssl -lev" # -Wl,-Bdynamic ? -lrt ?
+export CFLAGS="%{optflags}"
 
 cd NTS
-%{_bindir}/phpize
-%configure \
-    --enable-aerospike \
-    --with-php-config=%{_bindir}/php-config \
-    PHP7=1 SWIG=1
-make %{?_smp_mflags}
+PHP_CONFIG=%{_bindir}/%{?scl_prefix}php-config cargo build
 
 %if %{with_zts}
 cd ../ZTS
-%{_bindir}/zts-phpize
-%configure \
-    --enable-aerospike \
-    --with-php-config=%{_bindir}/zts-php-config \
-    PHP7=1 SWIG=1
-make %{?_smp_mflags}
+PHP_CONFIG=%{_bindir}/%{?scl_prefix}zts-php-config cargo build
 %endif
 
 
@@ -96,13 +83,15 @@ make %{?_smp_mflags}
 %{?dtsenable}
 
 # Install the NTS stuff
-make -C NTS install INSTALL_ROOT=%{buildroot}
-install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
+install -D -m 0755 NTS/target/debug/lib%{pecl_name}.so \
+  %{buildroot}%{php_extdir}/%{pecl_name}.so
+install -D -m 0644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 %if %{with_zts}
 # Install the ZTS stuff
-make -C ZTS install INSTALL_ROOT=%{buildroot}
-install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
+install -D -m 0755 ZTS/target/debug/lib%{pecl_name}.so \
+  %{buildroot}%{php_ztsextdir}/%{pecl_name}.so
+install -D -m 0644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
 %endif
 
 
@@ -110,34 +99,28 @@ install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
 cd NTS
 : Minimal load test for NTS extension
 %{__php} --no-php-ini \
-    --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
-    --modules | grep %{pecl_name}
-
-#: Upstream test suite  for NTS extension
-#TEST_PHP_EXECUTABLE=%{__php} \
-#TEST_PHP_ARGS="-n -d extension=%{buildroot}%{php_extdir}/%{pecl_name}.so" \
-#NO_INTERACTION=1 \
-#REPORT_EXIT_STATUS=1 \
-#%{__php} -n run-tests.php --show-diff || : ignore
+  --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
+  --modules | grep %{pecl_name}
+#: Upstream test suite for NTS extension - Requires server running
+#%{__php} --no-php-ini \
+#  --define extension=%{buildroot}%{php_extdir}/%{pecl_name}.so \
+#  ../test.php
 
 %if %{with_zts}
 cd ../ZTS
 : Minimal load test for ZTS extension
 %{__ztsphp} --no-php-ini \
-    --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
-    --modules | grep %{pecl_name}
-
-#: Upstream test suite  for ZTS extension
-#TEST_PHP_EXECUTABLE=%{__ztsphp} \
-#TEST_PHP_ARGS="-n -d extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so" \
-#NO_INTERACTION=1 \
-#REPORT_EXIT_STATUS=1 \
-#%{__ztsphp} -n run-tests.php --show-diff
+  --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
+  --modules | grep %{pecl_name}
+#: Upstream test suite for NTS extension - Requires server running
+#%{__ztsphp} --no-php-ini \
+#  --define extension=%{buildroot}%{php_ztsextdir}/%{pecl_name}.so \
+#  ../test.php
 %endif
 
 
 %files
-%license LICENSE
+#license LICENSE
 %doc README.md
 
 %config(noreplace) %{php_inidir}/%{ini_name}
@@ -150,6 +133,9 @@ cd ../ZTS
 
 
 %changelog
+* Sun Oct  1 2023 Matthias Saou <matthias@saou.eu> 0.1.0-1
+- Update to the PHP 8.1+ ext-php-rs (Rust) based extension.
+
 * Tue Mar  2 2021 Matthias Saou <matthias@saou.eu> 7.5.2-1
 - Initial RPM release.
 
