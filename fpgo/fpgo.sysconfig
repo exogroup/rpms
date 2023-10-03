@@ -1,0 +1,9 @@
+# -a string
+#    Listen address. (default ":13002")
+# -c int
+#    Max concurrency for fasthttp server (default 512)
+# -n string
+#    DNS nameserves, "8.8.8.8:53" or "1.1.1.1:53,8.8.8.8:53". Default is empty
+# -t duration
+#    Connection timeout. Examples: 1m or 10s (default 20s)
+FPGO_ARGS=""

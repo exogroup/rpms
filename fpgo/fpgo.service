@@ -1,0 +1,12 @@
+[Unit]
+Description=Fasthttp forward proxy
+After=network-online.target
+
+[Service]
+DynamicUser=yes
+EnvironmentFile=-/etc/sysconfig/fpgo
+ExecStart=/usr/bin/fpgo $FPGO_ARGS
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
