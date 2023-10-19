@@ -6,8 +6,8 @@
 
 Summary: High-performance coordination service for distributed applications
 Name: zookeeper
-Version: 3.6.4
-Release: 1
+Version: 3.7.1
+Release: 2
 License: ASL 2.0 and BSD
 Group: Applications/Databases
 URL: https://zookeeper.apache.org/
@@ -104,6 +104,9 @@ fi
 %{_libdir}/nagios/plugins/check_zookeeper
 
 %changelog
-* Thu Jul 20 2023 Matthias Saou <matthias@saou.eu> 3.6.4-1
+* Thu Oct 19 2023 Matthias Saou <matthias@saou.eu> 3.7.1-2
+- Fix service by using After=network-online.target.
+
+* Thu Jul 20 2023 Matthias Saou <matthias@saou.eu> 3.7.1-1
 - Set name/version/release normally and include changelog.
 
