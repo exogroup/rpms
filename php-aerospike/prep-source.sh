@@ -13,14 +13,12 @@ if ! which cargo &>/dev/null; then
   exit 1
 fi
 
-GH_COMMIT="e37a8a1c404f516d5261da5cb8c7108b79561a4e"
-GH_SHORT="${GH_COMMIT:0:7}"
 VERSION=$1
-test -f php-client-${VERSION}-${GH_SHORT}.tar.gz || \
-  wget https://github.com/aerospike/php-client/archive/${GH_COMMIT}/php-client-${VERSION}-${GH_SHORT}.tar.gz
-rm -rf php-client-${GH_COMMIT}*
-tar xzvf php-client-${VERSION}-${GH_SHORT}.tar.gz
-cd php-client-${GH_COMMIT}
+test -f php-client-${VERSION}.tar.gz || \
+  wget https://github.com/aerospike/php-client/archive/refs/tags/${VERSION}/php-client-${VERSION}.tar.gz
+rm -rf php-client-${VERSION}
+tar xzvf php-client-${VERSION}.tar.gz
+cd php-client-${VERSION}
 cargo vendor
 mkdir .cargo
 cat > .cargo/config.toml << EOF
@@ -45,6 +43,7 @@ for i in vcpkg win*; do
 done
 cd ..
 cd ..
-mv php-client-${GH_COMMIT} php-client-${GH_COMMIT}-vendor
-tar czvf php-client-${VERSION}-${GH_SHORT}-vendor.tar.gz php-client-${GH_COMMIT}-vendor
-ls -lh php-client-${VERSION}-${GH_SHORT}-vendor.tar.gz
+mv php-client-${VERSION} php-client-${VERSION}-vendor
+tar czvf php-client-${VERSION}-vendor.tar.gz php-client-${VERSION}-vendor
+rm -rf php-client-${VERSION}-vendor
+ls -lh php-client-${VERSION}-vendor.tar.gz

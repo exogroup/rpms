@@ -3,9 +3,9 @@
 
 %{?scl:          %scl_package         php-aerospike}
 
-%global gh_commit   e37a8a1c404f516d5261da5cb8c7108b79561a4e
-%global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
-%global gh_date     20230918
+#global gh_commit   a4c3dd6f88f0a5d544986a5546c8de072200e6e4
+#global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
+#global gh_date     20231025
 %global gh_owner    aerospike
 %global gh_project  php-client
 %global pecl_name   aerospike
@@ -14,7 +14,7 @@
 
 Summary:       Aerospike PHP Client
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       0.1.0
+Version:       0.2.0
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
@@ -23,7 +23,7 @@ Release:       1%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_V
 License:       ASL 2.0
 URL:           https://github.com/%{gh_owner}/%{gh_project}
 # We build a self-contained tarball with prep-source.sh for offline build
-Source0:       %{gh_project}-%{version}-%{gh_short}-vendor.tar.gz
+Source0:       %{gh_project}-%{version}-vendor.tar.gz
 Source99:      prep-source.sh
 
 BuildRequires: %{?dtsprefix}gcc
@@ -50,7 +50,7 @@ Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSIO
 
 
 %prep
-%setup -q -n %{gh_project}-%{gh_commit}-vendor
+%setup -q -n %{gh_project}-%{version}-vendor
 mkdir NTS
 mv Cargo.* src NTS/
 
@@ -133,6 +133,9 @@ cd ../ZTS
 
 
 %changelog
+* Mon Oct 30 2023 Matthias Saou <matthias@saou.eu> 0.2.0-1
+- Update to 0.2.0.
+
 * Sun Oct  1 2023 Matthias Saou <matthias@saou.eu> 0.1.0-1
 - Update to the PHP 8.1+ ext-php-rs (Rust) based extension.
 
