@@ -1,0 +1,134 @@
+diff -up ncurses-6.2-20210508/configure.setuid ncurses-6.2-20210508/configure
+--- ncurses-6.2-20210508/configure.setuid	2021-05-02 02:35:51.000000000 +0200
++++ ncurses-6.2-20210508/configure	2023-08-21 14:22:48.925376959 +0200
+@@ -784,6 +784,7 @@ Fine-Tuning Your Configuration:
+   --enable-getcap-cache   cache translated termcaps in ~/.terminfo
+   --disable-home-terminfo drop ~/.terminfo from terminfo search-path
+   --disable-root-environ  restrict environment when running as root
++  --disable-setuid-environ restrict setuid use of ncurses environment variables
+   --enable-symlinks       make tic use symbolic links not hard links
+   --enable-broken_linker  compile with broken-linker support code
+   --enable-bsdpad         recognize BSD-style prefix padding
+@@ -9224,6 +9225,20 @@ cat >>confdefs.h <<\EOF
+ #define USE_ROOT_ENVIRON 1
+ EOF
+ 
++# Check whether --enable-setuid-environ or --disable-setuid-environ was given.
++if test "${enable_setuid_environ+set}" = set; then
++  enableval="$enable_setuid_environ"
++  with_setuid_environ=$enableval
++else
++  with_setuid_environ=$with_root_environ
++fi;
++echo "$as_me:9942: result: $with_setuid_environ" >&5
++echo "${ECHO_T}$with_setuid_environ" >&6
++test "x$with_setuid_environ" = xyes &&
++cat >>confdefs.h <<\EOF
++#define USE_SETUID_ENVIRON 1
++EOF
++
+ ###   Use option --enable-symlinks to make tic use symlinks, not hard links
+ ###   to reduce storage requirements for the terminfo database.
+ 
+diff -up ncurses-6.2-20210508/ncurses/curses.priv.h.setuid ncurses-6.2-20210508/ncurses/curses.priv.h
+--- ncurses-6.2-20210508/ncurses/curses.priv.h.setuid	2021-04-04 00:12:56.000000000 +0200
++++ ncurses-6.2-20210508/ncurses/curses.priv.h	2023-08-21 14:22:48.925376959 +0200
+@@ -210,7 +210,7 @@ extern int errno;
+  * If desired, one can configure this, disabling environment variables that
+  * point to custom terminfo/termcap locations.
+  */
+-#ifdef USE_ROOT_ENVIRON
++#if defined(USE_ROOT_ENVIRON) && defined(USE_SETUID_ENVIRON)
+ #define use_terminfo_vars() 1
+ #else
+ #define use_terminfo_vars() _nc_env_access()
+diff -up ncurses-6.2-20210508/ncurses/tinfo/access.c.setuid ncurses-6.2-20210508/ncurses/tinfo/access.c
+--- ncurses-6.2-20210508/ncurses/tinfo/access.c.setuid	2020-08-29 18:22:03.000000000 +0200
++++ ncurses-6.2-20210508/ncurses/tinfo/access.c	2023-08-21 14:22:48.925376959 +0200
+@@ -37,6 +37,8 @@
+ 
+ #include <tic.h>
+ 
++#include <sys/auxv.h>
++
+ MODULE_ID("$Id: access.c,v 1.27 2020/08/29 16:22:03 juergen Exp $")
+ 
+ #define LOWERCASE(c) ((isalpha(UChar(c)) && isupper(UChar(c))) ? tolower(UChar(c)) : (c))
+@@ -169,7 +171,18 @@ _nc_is_file_path(const char *path)
+     return result;
+ }
+ 
+-#ifndef USE_ROOT_ENVIRON
++#define is_posix_elevated() \
++	(getuid() != geteuid() \
++	 || getgid() != getegid())
++
++#define is_elevated() \
++	(getauxval(AT_SECURE) \
++	 ? TRUE \
++	 : (errno != ENOENT \
++	    ? FALSE \
++	    : is_posix_elevated()))
++
++#if !defined(USE_ROOT_ENVIRON) || !defined(USE_SETUID_ENVIRON)
+ /*
+  * Returns true if we allow application to use environment variables that are
+  * used for searching lists of directories, etc.
+@@ -177,15 +190,18 @@ _nc_is_file_path(const char *path)
+ NCURSES_EXPORT(int)
+ _nc_env_access(void)
+ {
+-#if HAVE_ISSETUGID
+-    if (issetugid())
+-	return FALSE;
+-#elif HAVE_GETEUID && HAVE_GETEGID
+-    if (getuid() != geteuid()
+-	|| getgid() != getegid())
+-	return FALSE;
++    int result = TRUE;
++
++#if !defined(USE_SETUID_ENVIRON)
++    if (is_elevated()) {
++	result = FALSE;
++    }
+ #endif
+-    /* ...finally, disallow root */
+-    return (getuid() != ROOT_UID) && (geteuid() != ROOT_UID);
++#if !defined(USE_ROOT_ENVIRON)
++    if ((getuid() == ROOT_UID) || (geteuid() == ROOT_UID)) {
++	result = FALSE;
++    }
++#endif
++    return result;
+ }
+ #endif
+diff -up ncurses-6.2-20210508/ncurses/tinfo/comp_error.c.setuid ncurses-6.2-20210508/ncurses/tinfo/comp_error.c
+--- ncurses-6.2-20210508/ncurses/tinfo/comp_error.c.setuid	2023-08-21 14:27:08.268309417 +0200
++++ ncurses-6.2-20210508/ncurses/tinfo/comp_error.c	2023-08-21 14:33:13.716214256 +0200
+@@ -148,8 +148,8 @@ _nc_syserr_abort(const char *const fmt,
+     /* If we're debugging, try to show where the problem occurred - this
+      * will dump core.
+      */
+-#ifndef USE_ROOT_ENVIRON
+-    if (getuid() != ROOT_UID)
++#if !defined(USE_ROOT_ENVIRON) || !defined(USE_SETUID_ENVIRON)
++    if (_nc_env_access())
+ #endif
+ 	abort();
+ #endif
+diff -up ncurses-6.2-20210508/ncurses/tinfo/write_entry.c.setuid ncurses-6.2-20210508/ncurses/tinfo/write_entry.c
+--- ncurses-6.2-20210508/ncurses/tinfo/write_entry.c.setuid	2020-08-29 18:22:03.000000000 +0200
++++ ncurses-6.2-20210508/ncurses/tinfo/write_entry.c	2023-08-21 14:32:22.738227530 +0200
+@@ -215,11 +215,7 @@ _nc_set_writedir(const char *dir)
+     const char *destination;
+     char actual[PATH_MAX];
+ 
+-    if (dir == 0
+-#ifndef USE_ROOT_ENVIRON
+-	&& use_terminfo_vars()
+-#endif
+-	)
++    if (dir == 0 && use_terminfo_vars())
+ 	dir = getenv("TERMINFO");
+ 
+     if (dir != 0)

@@ -1,0 +1,8 @@
+Taken from https://kojihub.stream.centos.org/koji/buildinfo?buildID=36560
+
+This is because upstream RHEL doesn't ship the compat-libs sub-package, but we
+still require it for old versions of CLI tools (megacli).
+
+But this breaks when RHEL bumps the package release, so build a completely
+standalone package instead of an ncurses sub-package.
+
