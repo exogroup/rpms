@@ -19,6 +19,7 @@ test -f php-client-${VERSION}.tar.gz || \
 rm -rf php-client-${VERSION}
 tar xzvf php-client-${VERSION}.tar.gz
 cd php-client-${VERSION}
+patch -p1 < ../php-client-0.2.0-php-rs-fix.patch
 cargo vendor
 mkdir .cargo
 cat > .cargo/config.toml << EOF
