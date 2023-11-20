@@ -15,11 +15,10 @@ fi
 
 VERSION=$1
 test -f php-client-${VERSION}.tar.gz || \
-  wget https://github.com/aerospike/php-client/archive/refs/tags/${VERSION}/php-client-${VERSION}.tar.gz
+  wget https://github.com/aerospike/php-client/archive/refs/tags/v${VERSION}/php-client-${VERSION}.tar.gz
 rm -rf php-client-${VERSION}
 tar xzvf php-client-${VERSION}.tar.gz
 cd php-client-${VERSION}
-patch -p1 < ../php-client-0.2.0-php-rs-fix.patch
 cargo vendor
 mkdir .cargo
 cat > .cargo/config.toml << EOF

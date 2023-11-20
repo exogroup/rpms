@@ -11,21 +11,21 @@
 %global pecl_name   aerospike
 %global with_zts    0%{?_with_zts:%{?__ztsphp:1}}
 %global ini_name    40-%{pecl_name}.ini
+%global prever      -alpha
 
 Summary:       Aerospike PHP Client
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       0.2.0
+Version:       0.3.0
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
-Release:       2%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
+Release:       1%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %endif
 License:       ASL 2.0
 URL:           https://github.com/%{gh_owner}/%{gh_project}
 # We build a self-contained tarball with prep-source.sh for offline build
-Source0:       %{gh_project}-%{version}-vendor.tar.gz
+Source0:       %{gh_project}-%{version}%{?prever}-vendor.tar.gz
 Source99:      prep-source.sh
-Patch0:        php-client-0.2.0-php-rs-fix.patch
 
 BuildRequires: %{?dtsprefix}gcc
 BuildRequires: %{?scl_prefix}php-devel > 8.1
@@ -51,7 +51,7 @@ Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSIO
 
 
 %prep
-%setup -q -n %{gh_project}-%{version}-vendor
+%setup -q -n %{gh_project}-%{version}%{?prever}-vendor
 mkdir NTS
 mv Cargo.* src NTS/
 
@@ -134,6 +134,10 @@ cd ../ZTS
 
 
 %changelog
+* Mon Nov 20 2023 Matthias Saou <matthias@saou.eu> 0.3.0-1
+- Remove patch, ext-php-rs 0.10.4 now includes a proper fix.
+- Tweak ... tag prefixed with "v" again, and suffixed with "-alpha"...
+
 * Wed Nov 15 2023 Matthias Saou <matthias@saou.eu> 0.2.0-2
 - Include patch to fix aarch64 build.
 
