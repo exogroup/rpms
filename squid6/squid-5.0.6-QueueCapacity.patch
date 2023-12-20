@@ -1,0 +1,12 @@
+diff -Naupr squid-5.0.6.orig/src/CollapsedForwarding.cc squid-5.0.6/src/CollapsedForwarding.cc
+--- squid-5.0.6.orig/src/CollapsedForwarding.cc	2021-05-10 11:02:34.000000000 +0200
++++ squid-5.0.6/src/CollapsedForwarding.cc	2021-06-08 16:29:43.210668859 +0200
+@@ -25,7 +25,7 @@
+ static const char *const ShmLabel = "cf";
+ /// a single worker-to-worker queue capacity
+ // TODO: make configurable or compute from squid.conf settings if possible
+-static const int QueueCapacity = 1024;
++static const int QueueCapacity = 4096;
+ 
+ std::unique_ptr<CollapsedForwarding::Queue> CollapsedForwarding::queue;
+ 
