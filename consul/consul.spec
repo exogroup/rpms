@@ -1,3 +1,6 @@
+# Fix "Empty %files file" debugsourcefiles.list (we have no sources, duh!)
+%define _debugsource_template %{nil}
+# Ignore "Missing build-id in /usr/bin/consul" due to binary-only "source"
 %undefine _missing_build_ids_terminate_build
 
 %ifarch x86_64
@@ -10,13 +13,14 @@
 Summary: Tool for service discovery and configuration
 Name: consul
 Version: 1.17.1
-Release: 1
+Release: 2
 License: MPLv2.0
 URL: https://consul.io/
 Source0: https://releases.hashicorp.com/consul/%{version}/consul_%{version}_linux_%{binarch}.zip
 Source1: consul.hcl.template
 Source2: consul.service
 Source3: consul.bash_completion
+BuildRequires: systemd
 ExclusiveArch: x86_64 aarch64
 %{?systemd_requires}
 
@@ -70,8 +74,9 @@ getent passwd consul >/dev/null || \
 
 
 %changelog
-* Tue Jan  9 2024 Matthias Saou <matthias@saou.eu> 1.17.1-1
+* Tue Jan  9 2024 Matthias Saou <matthias@saou.eu> 1.17.1-2
 - Update to 1.17.1.
+- Include changes to fix el9 minimal build.
 
 * Sun Nov 12 2023 Matthias Saou <matthias@saou.eu> 1.17.0-1
 - Update to 1.17.0.
