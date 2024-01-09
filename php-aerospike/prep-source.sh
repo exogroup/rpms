@@ -18,6 +18,7 @@ test -f php-client-${VERSION}.tar.gz || \
   wget https://github.com/aerospike/php-client/archive/refs/tags/v${VERSION}/php-client-${VERSION}.tar.gz
 rm -rf php-client-${VERSION}
 tar xzvf php-client-${VERSION}.tar.gz
+rm -f php-client-${VERSION}.tar.gz
 cd php-client-${VERSION}
 cargo vendor
 mkdir .cargo

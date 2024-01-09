@@ -15,7 +15,7 @@
 
 Summary:       Aerospike PHP Client
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       0.3.0
+Version:       0.4.0
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
@@ -134,6 +134,9 @@ cd ../ZTS
 
 
 %changelog
+* Tue Jan  9 2024 Matthias Saou <matthias@saou.eu> 0.4.0-1
+- Update to 0.4.0.
+
 * Mon Nov 20 2023 Matthias Saou <matthias@saou.eu> 0.3.0-1
 - Remove patch, ext-php-rs 0.10.4 now includes a proper fix.
 - Tweak ... tag prefixed with "v" again, and suffixed with "-alpha"...
