@@ -6,7 +6,7 @@ After=network-online.target
 User=zookeeper
 EnvironmentFile=/etc/sysconfig/zookeeper
 Environment=CLASSPATH=.:/usr/share/java/zookeeper/*
-ExecStart=/bin/java -cp $CLASSPATH $LOG4J $JVMFLAGS $ZOOMAIN $ZOOCFG
+ExecStart=/bin/java -cp $CLASSPATH -Dlogback.configurationFile=file:///etc/zookeeper/logback.xml $JVMFLAGS $ZOOMAIN $ZOOCFG
 SuccessExitStatus=143
 
 [Install]

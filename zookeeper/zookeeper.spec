@@ -6,8 +6,8 @@
 
 Summary: High-performance coordination service for distributed applications
 Name: zookeeper
-Version: 3.7.1
-Release: 2
+Version: 3.8.3
+Release: 3
 License: ASL 2.0 and BSD
 Group: Applications/Databases
 URL: https://zookeeper.apache.org/
@@ -16,11 +16,11 @@ Source1: https://dlcdn.apache.org/zookeeper/zookeeper-%{version}/apache-zookeepe
 Source2: zookeeper.service
 Source3: zookeeper.logrotate
 Source4: zoo.cfg
-Source5: zookeeper.log4j.properties
-Source6: zookeeper.log4j-cli.properties
-Source7: zookeeper.sysconfig
-Source8: zkcli
+Source5: zookeeper.sysconfig
+Source6: zkcli
 Patch0: 1294.patch
+# Enable file log and rely on our own logrotate
+Patch1: apache-zookeeper-3.8.3-bin-logback.patch
 %{?systemd_requires}
 BuildArch: noarch
 Requires: java-headless
@@ -44,6 +44,7 @@ Provides check_zookeeper support for Nagios.
 %prep
 %setup -q -n apache-zookeeper-%{version} -a 1
 %patch0 -p1
+%patch1 -p1
 
 %build
 
@@ -58,11 +59,10 @@ mkdir -p $RPM_BUILD_ROOT%{_unitdir}
 # Configuration
 install -p -D -m 0644 %{S:3} $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/zookeeper
 install -p -D -m 0644 %{S:4} $RPM_BUILD_ROOT%{zk_confdir}/zoo.cfg
-install -p -D -m 0644 %{S:5} $RPM_BUILD_ROOT%{zk_confdir}/log4j.properties
-install -p -D -m 0644 %{S:6} $RPM_BUILD_ROOT%{zk_confdir}/log4j-cli.properties
-install -p -D -m 0644 %{S:7} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/zookeeper
+install -p -D -m 0644 %{S:5} $RPM_BUILD_ROOT%{_sysconfdir}/sysconfig/zookeeper
+install -p -D -m 0644 conf/logback.xml $RPM_BUILD_ROOT%{zk_confdir}/logback.xml
 # CLI
-install -p -D -m 0755 %{S:8} $RPM_BUILD_ROOT%{_bindir}/zkcli
+install -p -D -m 0755 %{S:6} $RPM_BUILD_ROOT%{_bindir}/zkcli
 # Empty directories
 mkdir -p $RPM_BUILD_ROOT%{zk_logdir}
 mkdir -p $RPM_BUILD_ROOT%{zk_datadir}
@@ -104,6 +104,13 @@ fi
 %{_libdir}/nagios/plugins/check_zookeeper
 
 %changelog
+* Sat Jan 20 2024 Matthias Saou <matthias@saou.eu> 3.8.3-3
+- Disable console (journald) logging, re-enable file logging.
+
+* Sat Jan 20 2024 Matthias Saou <matthias@saou.eu> 3.8.3-2
+- Update to 3.8.3.
+- Adjust for the switch from log4j to logback.
+
 * Thu Oct 19 2023 Matthias Saou <matthias@saou.eu> 3.7.1-2
 - Fix service by using After=network-online.target.
 
