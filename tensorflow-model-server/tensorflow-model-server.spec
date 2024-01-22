@@ -6,14 +6,22 @@
 %define _debugsource_template %{nil}
 
 # With 20 CPU threads and 32GB RAM (i9-13900H) ... make -j20 ... oomkiller
+%ifarch x86_64
 %define _smp_ncpus_max 10
+%endif
+# With 6 CPU cores (4xA53, 2xA73) and 4GB RAM  ... make -j6 ... oomkiller
+%ifarch aarch64
+%define _smp_ncpus_max 3
+%endif
 
-# Build with all by default, to typically run on recent hardware
+# Build x86_64 with all by default, to typically run on recent hardware
 %bcond_without avx
 %bcond_without avx2
 %bcond_without fma
 %bcond_without sse4_1
 %bcond_without sse4_2
+# Same for ARM, default for recent CPUs
+%bcond_without armv82a
 
 Summary: High-performance serving system for machine learning models
 Name: tensorflow-model-server
@@ -65,6 +73,7 @@ JOBS=${_SMP_MFLAGS#-j}
 # * Fetching repository @org_boost; Updating submodules recursively
 #   ^ Times out after 609s so add --experimental_scale_timeouts=5.0
 TF_SERVING_BAZEL_OPTIONS="-c opt \
+%ifarch x86_64
 %if %{with avx}
 --copt=-mavx \
 %endif
@@ -80,10 +89,18 @@ TF_SERVING_BAZEL_OPTIONS="-c opt \
 %if %{with sse4_2}
 --copt=-msse4.2 \
 %endif
+%endif
+%ifarch aarch64
+%if %{with armv82a}
+--copt=-march=armv8.2-a \
+%endif
+%endif
 --copt=-Wno-stringop-truncation \
 --jobs=${JOBS} \
 --experimental_scale_timeouts=5.0"
-TF_SERVING_BUILD_OPTIONS="--config=release"
+# See .bazelrc
+# Don't use --config=release since it adds only x86_64 specific avx and sse4.1
+TF_SERVING_BUILD_OPTIONS=""
 
 # Build TensorFlow Serving
 bazel build --color=no --curses=yes \

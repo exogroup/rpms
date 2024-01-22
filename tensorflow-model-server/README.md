@@ -1,5 +1,7 @@
 # Overview
 
+**tl;dr** : Build with `mock` using `--enable-network`
+
 https://github.com/tensorflow/serving
 
 _"The easiest and most straight-forward way of using TensorFlow Serving is with
