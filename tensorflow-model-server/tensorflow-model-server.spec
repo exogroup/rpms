@@ -1,18 +1,14 @@
 # Requires mock --enable-network to build... A TON of build time downloading
 # ~/.cache/bazel/ grows to 5.6GB to build, then 7.8GB once done (2.14.1)
 
+# With 20 CPU threads and 32GB RAM (i9-13900H) ... make -j20 ... oomkiller
+# So use --define '_smp_ncpus_max 12'
+# With 6 CPU cores (4xA53, 2xA73) and 4GB RAM  ... make -j6 ... oomkiller
+# So use --define '_smp_ncpus_max 3'
+
 # Fix "Empty %files file" debugsourcefiles.list... not sure why, possibly
 # because sources are outside BUILDROOT (~/.cache/bazel)?
 %define _debugsource_template %{nil}
-
-# With 20 CPU threads and 32GB RAM (i9-13900H) ... make -j20 ... oomkiller
-%ifarch x86_64
-%define _smp_ncpus_max 10
-%endif
-# With 6 CPU cores (4xA53, 2xA73) and 4GB RAM  ... make -j6 ... oomkiller
-%ifarch aarch64
-%define _smp_ncpus_max 3
-%endif
 
 # Build x86_64 with all by default, to typically run on recent hardware
 %bcond_without avx
@@ -20,13 +16,13 @@
 %bcond_without fma
 %bcond_without sse4_1
 %bcond_without sse4_2
-# Same for ARM, default for recent CPUs
-%bcond_without armv82a
+# Build aarch64 for ARMv8-A and up (RPi3+, Apple Silicon is ARMv8.2-A)
+%bcond_without armv8a
 
 Summary: High-performance serving system for machine learning models
 Name: tensorflow-model-server
 Version: 2.14.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: ASL 2.0
 URL: https://www.tensorflow.org/serving
 Source0: https://github.com/tensorflow/serving/archive/refs/tags/%{version}/serving-%{version}.tar.gz
@@ -91,8 +87,8 @@ TF_SERVING_BAZEL_OPTIONS="-c opt \
 %endif
 %endif
 %ifarch aarch64
-%if %{with armv82a}
---copt=-march=armv8.2-a \
+%if %{with armv8a}
+--copt=-march=armv8-a \
 %endif
 %endif
 --copt=-Wno-stringop-truncation \
@@ -136,6 +132,10 @@ install -D -m 0755 \
 
 
 %changelog
+* Thu Jan 25 2024 Matthias Saou <matthias@saou.eu> 2.14.1-2
+- Minor spec file tweaks.
+- Build aarch64 for v8, not v8.2, to keep compatible with Raspberry Pi.
+
 * Tue Jan 16 2024 Matthias Saou <matthias@saou.eu> 2.14.1-1
 - Initial RPM release.
 
