@@ -4,18 +4,18 @@
 %{?scl:          %scl_package         php-aerospike}
 
 #global gh_commit   a4c3dd6f88f0a5d544986a5546c8de072200e6e4
-#global gh_short    %(c=%{gh_commit}; echo ${c:0:7})
+#global gh_short    %%(c=%%{gh_commit}; echo ${c:0:7})
 #global gh_date     20231025
 %global gh_owner    aerospike
 %global gh_project  php-client
 %global pecl_name   aerospike
 %global with_zts    0%{?_with_zts:%{?__ztsphp:1}}
 %global ini_name    40-%{pecl_name}.ini
-%global prever      -alpha
+%global prever      -beta
 
 Summary:       Aerospike PHP Client
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       0.4.0
+Version:       0.5.0
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
@@ -29,9 +29,12 @@ Source99:      prep-source.sh
 
 BuildRequires: %{?dtsprefix}gcc
 BuildRequires: %{?scl_prefix}php-devel > 8.1
+#BuildRequires: cargo >= 1.74
 BuildRequires: cargo
 # For ext-php-rs
 BuildRequires: clang-devel
+# For aerospike v0.1.0
+BuildRequires: protobuf-compiler
 
 Requires:      %{?scl_prefix}php(zend-abi) = %{php_zend_api}
 Requires:      %{?scl_prefix}php(api) = %{php_core_api}
@@ -50,10 +53,24 @@ Client extension for Aerospike.
 Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')%{?scl: as Software Collection (%{scl} by %{?scl_vendor}%{!?scl_vendor:rh})}.
 
 
+%package -n aerospike-local-daemon
+Summary:       Aerospike Local Daemon
+BuildRequires: golang
+# We run "make proto" in prep-source.sh to avoid requiring this on el9
+#BuildRequires: golang-google-grpc
+#BuildRequires: golang-google-protobuf
+
+%description -n aerospike-local-daemon
+Aerospike Local Daemon used by the PHP extension to connect to Aerospike.
+
+
 %prep
 %setup -q -n %{gh_project}-%{version}%{?prever}-vendor
 mkdir NTS
-mv Cargo.* src NTS/
+mv Cargo.* build.rs src NTS/
+# This daemon/asld_kvs.proto is referenced by build.rs
+mkdir NTS/daemon
+cp -a daemon/asld_kvs.proto NTS/daemon/
 
 %if %{with_zts}
 # duplicate for ZTS build
@@ -79,6 +96,11 @@ cd ../ZTS
 PHP_CONFIG=%{_bindir}/%{?scl_prefix}zts-php-config cargo build
 %endif
 
+# Aerospike Local Daemon
+cd ../daemon
+# Don't use 'make build' as it's missing a build-id
+%gobuild .
+
 
 %install
 %{?dtsenable}
@@ -94,6 +116,9 @@ install -D -m 0755 ZTS/target/debug/lib%{pecl_name}.so \
   %{buildroot}%{php_ztsextdir}/%{pecl_name}.so
 install -D -m 0644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
 %endif
+
+# Aerospike Local Daemon
+install -D -m 0755 daemon/asld %{buildroot}%{_sbindir}/asld
 
 
 %check
@@ -133,7 +158,16 @@ cd ../ZTS
 %endif
 
 
+%files -n aerospike-local-daemon
+%license daemon/LICENSE
+%doc daemon/README.md
+%{_sbindir}/asld
+
+
 %changelog
+* Mon Feb 26 2024 Matthias Saou <matthias@saou.eu> 0.5.0-1
+- Update to 0.5.0.
+
 * Tue Jan  9 2024 Matthias Saou <matthias@saou.eu> 0.4.0-1
 - Update to 0.4.0.
 

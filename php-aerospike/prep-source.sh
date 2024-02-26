@@ -4,8 +4,12 @@
 # but cannot be deleted, or the build fails
 
 if [[ -z "$1" ]]; then
-  echo "Usage: $0 <version>"
+  echo "Usage: $0 <version> [branch]"
   exit 1
+fi
+
+if [[ -n "$2" ]]; then
+  BRANCH=$2
 fi
 
 if ! which cargo &>/dev/null; then
@@ -14,11 +18,17 @@ if ! which cargo &>/dev/null; then
 fi
 
 VERSION=$1
-test -f php-client-${VERSION}.tar.gz || \
-  wget https://github.com/aerospike/php-client/archive/refs/tags/v${VERSION}/php-client-${VERSION}.tar.gz
+
 rm -rf php-client-${VERSION}
-tar xzvf php-client-${VERSION}.tar.gz
-rm -f php-client-${VERSION}.tar.gz
+
+if [[ -z "$BRANCH" ]]; then
+  wget https://github.com/aerospike/php-client/archive/refs/tags/v${VERSION}/php-client-${VERSION}.tar.gz
+  tar xzvf php-client-${VERSION}.tar.gz
+  rm -f php-client-${VERSION}.tar.gz
+else
+  git clone git@github.com:aerospike/php-client.git --depth=1 --branch=$BRANCH php-client-${VERSION}
+fi
+
 cd php-client-${VERSION}
 cargo vendor
 mkdir .cargo
@@ -43,6 +53,19 @@ for i in vcpkg win*; do
   rm -rf $i/{lib,third*party}
 done
 cd ..
+
+# Now we have the Go daemon too
+cd daemon
+# This is a PITA for el9, so create from Fedora
+make proto
+# Change $HOME for go mod to store cache
+LOCAL=$(pwd)/.home
+HOME=${LOCAL} go mod tidy || exit 1
+HOME=${LOCAL} go mod vendor || exit 1
+chmod -R u+w ${LOCAL}
+rm -rf ${LOCAL}
+cd ..
+
 cd ..
 mv php-client-${VERSION} php-client-${VERSION}-vendor
 tar czvf php-client-${VERSION}-vendor.tar.gz php-client-${VERSION}-vendor
