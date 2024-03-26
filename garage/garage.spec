@@ -5,7 +5,7 @@
 
 Summary: Distributed object storage service tailored for self-hosting
 Name: garage
-Version: 0.8.3
+Version: 0.9.1
 Release: 1%{?dist}
 License: GPLv2+
 URL: https://garagehq.deuxfleurs.fr/
@@ -82,6 +82,9 @@ mkdir -p %{buildroot}/var/lib/garage
 
 
 %changelog
+* Tue Feb 13 2024 Matthias Saou <matthias@saou.eu> 0.9.1-1
+- Update to 0.9.1.
+
 * Fri Sep  1 2023 Matthias Saou <matthias@saou.eu> 0.8.3-1
 - Initial RPM release.
 
