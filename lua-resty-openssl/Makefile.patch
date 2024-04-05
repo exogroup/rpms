@@ -1,0 +1,29 @@
+diff --git a/Makefile b/Makefile
+index 39fd2ef..f343c0a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1,17 +1,20 @@
+ OPENRESTY_PREFIX=/usr/local/openresty
+ 
+ #LUA_VERSION := 5.1
+-PREFIX ?=          /usr/local
++PREFIX          ?= /usr/local
+ LUA_INCLUDE_DIR ?= $(PREFIX)/include
+-LUA_LIB_DIR ?=     $(PREFIX)/lib/lua/$(LUA_VERSION)
++LUA_LIB_DIR     ?= $(PREFIX)/lib/lua/$(LUA_VERSION)
++INSTALL         ?= install
+ 
+ .PHONY: all test install
+ 
+ all: ;
+ 
+ install: all
+-	cp -rpv lib/resty/openssl/. $(DESTDIR)$(LUA_LIB_DIR)/resty/openssl
+-	cp -pv lib/resty/openssl.lua $(DESTDIR)$(LUA_LIB_DIR)/resty/
++	$(INSTALL) -d $(DESTDIR)$(LUA_LIB_DIR)/resty
++	$(INSTALL) lib/resty/*.lua $(DESTDIR)$(LUA_LIB_DIR)/resty
++	$(INSTALL) -d $(DESTDIR)$(LUA_LIB_DIR)/resty/openssl
++	$(INSTALL) lib/resty/openssl/*.lua $(DESTDIR)$(LUA_LIB_DIR)/resty/openssl
+ 	
+ test: all
+ 	PATH=$(OPENRESTY_PREFIX)/nginx/sbin:$$PATH prove -I../test-nginx/lib -r t
