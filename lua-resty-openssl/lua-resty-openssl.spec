@@ -7,7 +7,6 @@ Release: 1%{?dist}
 License: BSD
 URL: https://github.com/fffonion/lua-resty-openssl
 Source0: https://github.com/fffonion/lua-resty-openssl/archive/refs/tags/%{version}/lua-resty-openssl-%{version}.tar.gz
-Patch0: Makefile.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: lua-resty-core
@@ -19,13 +18,14 @@ Lua FFI-based OpenSSL binding library for ngx_lua.
 
 %prep
 %setup -q -n lua-resty-openssl-%{version}
-%patch -P 0 -p1
+
 
 %build
 # Lua only, nothing to see here
 
 
 %install
+mkdir -p %{buildroot}%{lua_pkgdir}/resty
 make install DESTDIR=%{buildroot} LUA_LIB_DIR=%{lua_pkgdir}
 
 
@@ -33,9 +33,8 @@ make install DESTDIR=%{buildroot} LUA_LIB_DIR=%{lua_pkgdir}
 %doc README.md
 %dir %{lua_pkgdir}/
 %dir %{lua_pkgdir}/resty/
-%dir %{lua_pkgdir}/resty/openssl/
+%{lua_pkgdir}/resty/openssl/
 %{lua_pkgdir}/resty/openssl.lua
-%{lua_pkgdir}/resty/openssl/*.lua
 
 
 %changelog
