@@ -6,17 +6,18 @@ Version: 0.1.0
 Release: 1%{?dist}
 License: BSD
 URL: https://github.com/exogroup/lua-resty-tls-manager
-Source0: https://github.com/exogroup/lua-resty-tls-manager/archive/refs/tags/v%{version}/lua-resty-tls-manager-v%{version}.tar.gz
+Source0: https://github.com/exogroup/lua-resty-tls-manager/archive/refs/tags/v%{version}/lua-resty-tls-manager-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: lua-resty-core
+BuildRequires: make
 BuildRequires: luajit-resty-devel
 
 %description
 Library to automatically provide SSL certificate files.
 
 %prep
-%setup -q -n lua-resty-tls-manager-%{version}
+%setup -q
 
 
 %build

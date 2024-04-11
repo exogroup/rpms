@@ -10,6 +10,7 @@ Source0: https://github.com/fffonion/lua-resty-openssl/archive/refs/tags/%{versi
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: lua-resty-core
+BuildRequires: make
 BuildRequires: luajit-resty-devel
 
 %description
@@ -17,7 +18,7 @@ Lua FFI-based OpenSSL binding library for ngx_lua.
 
 
 %prep
-%setup -q -n lua-resty-openssl-%{version}
+%setup -q
 
 
 %build
