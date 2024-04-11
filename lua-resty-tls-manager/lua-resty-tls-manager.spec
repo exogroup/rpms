@@ -16,7 +16,7 @@ BuildRequires: luajit-resty-devel
 Library to automatically provide SSL certificate files.
 
 %prep
-%setup -q -n lua-resty-tls-manager-v%{version}
+%setup -q -n lua-resty-tls-manager-%{version}
 
 
 %build
