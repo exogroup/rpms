@@ -1,6 +1,6 @@
 Summary: ClickHouse http proxy and load balancer
 Name: chproxy
-Version: 1.25.0
+Version: 1.26.2
 Release: 1
 License: MIT
 URL: https://github.com/Vertamedia/chproxy
@@ -53,6 +53,9 @@ getent passwd chproxy >/dev/null || \
 
 
 %changelog
+* Tue Apr 16 2024 Matthias Saou <matthias@saou.eu> 1.26.2-1
+- Update to 1.26.2.
+
 * Tue Nov 14 2023 Matthias Saou <matthias@saou.eu> 1.25.0-1
 - Update to 1.25.0.
 
