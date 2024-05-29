@@ -1,13 +1,10 @@
 %global commit 9e7a6d709ab097f3784a8301ce77b3ec45af6f32
 %global gittag HEAD
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
-%if 0%{?rhel} == 7
-%define dist .el7
-%endif
 
 Name:             python-zadarma-api
 Version:          1.1.0
-Release:          1.%{shortcommit}%{?dist}
+Release:          2.%{shortcommit}%{?dist}
 Summary:          Python bindings for the Zadarma API
 License:          MIT
 URL:              https://github.com/zadarma/user-api-py-v1
@@ -60,3 +57,13 @@ cp -a zadarma %{buildroot}%{python3_sitelib}/
 %license LICENSE
 %doc README.md examples/example.py
 %{python3_sitelib}/zadarma/
+
+%changelog
+* Wed May 29 2024 Michele Brodoloni <michele@exads.com> - 1.1.0-2.9e7a6d7
+- Update the Spec file to ensure compatibility with EL 7 and later versions.
+
+* Thu Feb 18 2021 Matthias Saou <matthias@saou.eu> 1.1.0-1.9e7a6d7
+- Spec file cleanup and update to today's new release.
+
+* Thu Feb 18 2021 Michele Brodoloni <michele@exads.com> - 0-0.1.7617fdc
+- Initial release
