@@ -1,0 +1,18 @@
+[Unit]
+Description=etcd key-value store
+Documentation=https://github.com/etcd-io/etcd
+After=network-online.target local-fs.target remote-fs.target time-sync.target
+Wants=network-online.target local-fs.target remote-fs.target time-sync.target
+# Prevent the service from starting if the config file doesn't exist
+ConditionPathExists=/etc/etcd/config.yml
+
+[Service]
+User=etcd
+Type=notify
+ExecStart=/usr/bin/etcd --config-file /etc/etcd/config.yml
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]
+WantedBy=multi-user.target
