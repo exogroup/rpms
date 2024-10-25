@@ -8,7 +8,7 @@
 %endif
 
 Name: etcd
-Version: 3.4.34
+Version: 3.5.16
 Release: 1
 License: ASL 2.0
 URL: https://github.com/etcd-io/etcd
@@ -66,6 +66,9 @@ getent passwd etcd >/dev/null || \
 
 
 %changelog
+* Fri Oct 25 2024 Michele Brodoloni <michele@exads.com> - 3.5.16-1
+- Update to v3.5.16
+
 * Wed Oct 23 2024 Michele Brodoloni <michele@exads.com> - 3.4.34-1
 - Initial release v3.4.34
 
