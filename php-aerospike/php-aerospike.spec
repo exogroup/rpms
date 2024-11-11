@@ -11,11 +11,11 @@
 %global pecl_name   aerospike
 %global with_zts    0%{?_with_zts:%{?__ztsphp:1}}
 %global ini_name    40-%{pecl_name}.ini
-%global prever      -beta
+#global prever      -beta
 
 Summary:       Aerospike PHP Client
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       0.5.0
+Version:       1.1.0
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
@@ -53,15 +53,16 @@ Client extension for Aerospike.
 Package built for PHP %(%{__php} -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')%{?scl: as Software Collection (%{scl} by %{?scl_vendor}%{!?scl_vendor:rh})}.
 
 
-%package -n aerospike-local-daemon
-Summary:       Aerospike Local Daemon
+%package -n aerospike-connection-manager
+Summary:       Aerospike Connection Manager (Local Daemon)
 BuildRequires: golang
 # We run "make proto" in prep-source.sh to avoid requiring this on el9
 #BuildRequires: golang-google-grpc
 #BuildRequires: golang-google-protobuf
+Obsoletes:  aerospike-local-daemon < 1.1.0
 
-%description -n aerospike-local-daemon
-Aerospike Local Daemon used by the PHP extension to connect to Aerospike.
+%description -n aerospike-connection-manager
+Aerospike Connection Manager used by the PHP extension to connect to Aerospike.
 
 
 %prep
@@ -69,8 +70,8 @@ Aerospike Local Daemon used by the PHP extension to connect to Aerospike.
 mkdir NTS
 mv Cargo.* build.rs src NTS/
 # This daemon/asld_kvs.proto is referenced by build.rs
-mkdir NTS/daemon
-cp -a daemon/asld_kvs.proto NTS/daemon/
+mkdir NTS/aerospike-connection-manager
+cp -a aerospike-connection-manager/asld_kvs.proto NTS/aerospike-connection-manager/
 
 %if %{with_zts}
 # duplicate for ZTS build
@@ -97,7 +98,7 @@ PHP_CONFIG=%{_bindir}/%{?scl_prefix}zts-php-config cargo build
 %endif
 
 # Aerospike Local Daemon
-cd ../daemon
+cd ../aerospike-connection-manager
 # Don't use 'make build' as it's missing a build-id
 %gobuild .
 
@@ -106,19 +107,19 @@ cd ../daemon
 %{?dtsenable}
 
 # Install the NTS stuff
-install -D -m 0755 NTS/target/debug/lib%{pecl_name}.so \
+install -D -m 0755 NTS/target/debug/lib%{pecl_name}_php.so \
   %{buildroot}%{php_extdir}/%{pecl_name}.so
 install -D -m 0644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 %if %{with_zts}
 # Install the ZTS stuff
-install -D -m 0755 ZTS/target/debug/lib%{pecl_name}.so \
+install -D -m 0755 ZTS/target/debug/lib%{pecl_name}_php.so \
   %{buildroot}%{php_ztsextdir}/%{pecl_name}.so
 install -D -m 0644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
 %endif
 
 # Aerospike Local Daemon
-install -D -m 0755 daemon/asld %{buildroot}%{_sbindir}/asld
+install -D -m 0755 aerospike-connection-manager/asld %{buildroot}%{_sbindir}/asld
 
 
 %check
@@ -158,13 +159,17 @@ cd ../ZTS
 %endif
 
 
-%files -n aerospike-local-daemon
-%license daemon/LICENSE
-%doc daemon/README.md
+%files -n aerospike-connection-manager
+%license aerospike-connection-manager/LICENSE
+%doc aerospike-connection-manager/README.md
 %{_sbindir}/asld
 
 
 %changelog
+* Mon Nov 11 2024 Matthias Saou <matthias@saou.eu> 1.1.0-1
+- Update to 1.1.0.
+- Rename aerospike-local-daemon to aerospike-connection-manager.
+
 * Mon Feb 26 2024 Matthias Saou <matthias@saou.eu> 0.5.0-1
 - Update to 0.5.0.
 

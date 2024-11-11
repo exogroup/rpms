@@ -55,7 +55,7 @@ done
 cd ..
 
 # Now we have the Go daemon too
-cd daemon
+cd aerospike-connection-manager
 # This is a PITA for el9, so create from Fedora
 make proto
 # Change $HOME for go mod to store cache
