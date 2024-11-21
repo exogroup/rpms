@@ -7,12 +7,12 @@
 
 %bcond_with geoip
 
-# nginx gperftools support should be dissabled for RHEL >= 8
+# nginx gperftools support should be disabled for RHEL >= 8
 # see: https://bugzilla.redhat.com/show_bug.cgi?id=1931402
 %if 0%{?rhel} >= 8
 %global with_gperftools 0
 %else
-# gperftools exist only on selected arches
+# gperftools exists only on selected arches
 # gperftools *detection* is failing on ppc64*, possibly only configure
 # bug, but disable anyway.
 %ifnarch s390 s390x ppc64 ppc64le
@@ -28,13 +28,13 @@
 
 # Custom
 %global geoip2_version 3.4
-%global naxsi_version 1.4
-%global passenger_version 6.0.17
+%global naxsi_version 1.6
+%global passenger_version 6.0.23
 %global brotli_version 1.0.0rc
 %global fiftyoned_version 4.4.9
 %global fiftyoned_cxx_version 4.4.18
 %global fiftyoned_common_cxx_version 4.4.17
-%global lua_version 0.10.24
+%global lua_version 0.10.27
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -42,23 +42,50 @@
 %bcond_without 51D
 %bcond_without lua
 
+# Build against OpenSSL 1.1 on EL7
+%if 0%{?rhel} == 7
+%global openssl_pkgversion 11
+%endif
+
+# Build against OpenSSL 3 on EL8
+%if 0%{?rhel} == 8
+%global openssl_pkgversion 3
+%endif
+
+# Build against OpenSSL 1.1 on EL9
+%if 0%{?rhel} == 9
+%global openssl_pkgversion 1.1
+%endif
+
+# Cf. https://www.nginx.com/blog/creating-installable-packages-dynamic-modules/
+%global nginx_abiversion %{version}
+
+%global nginx_moduledir %{_libdir}/nginx/modules
+%global nginx_moduleconfdir %{_datadir}/nginx/modules
+%global nginx_srcdir %{_usrsrc}/%{name}-%{version}-%{release}
+
+# Do not generate provides/requires from nginx sources
+%global __provides_exclude_from ^%{nginx_srcdir}/.*$
+%global __requires_exclude_from ^%{nginx_srcdir}/.*$
+
+
 Name:              nginx
-Epoch:             1
-Version:           1.24.0
-Release:           1%{?dist}.ex5
+Epoch:             2
+Version:           1.26.2
+Release:           1%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
-# BSD License (two clause)
-# http://www.freebsd.org/copyright/freebsd-license.html
-License:           BSD
+License:           BSD-2-Clause
 URL:               https://nginx.org
 
 Source0:           https://nginx.org/download/nginx-%{version}.tar.gz
 Source1:           https://nginx.org/download/nginx-%{version}.tar.gz.asc
 # Keys are found here: https://nginx.org/en/pgp_keys.html
 Source2:           https://nginx.org/keys/maxim.key
-Source3:           https://nginx.org/keys/mdounin.key
-Source4:           https://nginx.org/keys/sb.key
+Source3:           https://nginx.org/keys/arut.key
+Source4:           https://nginx.org/keys/pluknet.key
+Source5:           https://nginx.org/keys/sb.key
+Source6:           https://nginx.org/keys/thresh.key
 Source10:          nginx.service
 Source11:          nginx.logrotate
 Source12:          nginx.conf
@@ -100,12 +127,8 @@ BuildRequires:     gnupg2
 %if 0%{?with_gperftools}
 BuildRequires:     gperftools-devel
 %endif
-%if 0%{?fedora} || 0%{?rhel} >= 8
-BuildRequires:     openssl-devel
-%else
-BuildRequires:     openssl11-devel
-%endif
-BuildRequires:     pcre-devel
+BuildRequires:     openssl%{?openssl_pkgversion}-devel
+BuildRequires:     pcre2-devel
 BuildRequires:     zlib-devel
 %if %{with 51D}
 BuildRequires:     libatomic
@@ -126,8 +149,6 @@ Obsoletes:         nginx-mod-http-geoip <= 1:1.16
 #Requires:          system-logos-httpd
 %endif
 
-Requires:          openssl
-Requires:          pcre
 Requires(pre):     nginx-filesystem
 %if 0%{?with_mailcap_mimetypes}
 Requires:          nginx-mimetypes
@@ -143,7 +164,10 @@ Requires(preun):   systemd
 Requires(postun):  systemd
 
 # Provide working upgrade path from RHEL9's packages
-Obsoletes: nginx-core < 1:%{version}-%{release}
+Obsoletes: nginx-core < 2:%{version}-%{release}
+
+# For external nginx modules
+Provides:          nginx(abi) = %{nginx_abiversion}
 
 %description
 Nginx is a web server and a reverse proxy server for HTTP, SMTP, POP3 and
@@ -178,7 +202,7 @@ directories.
 
 %package mod-http-51D
 Summary:           Nginx HTTP 51Degrees module
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-http-51D
 %{summary}.
@@ -186,7 +210,7 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %package mod-http-brotli
 Summary:           Nginx HTTP brotli module
 BuildRequires:     brotli-devel
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-http-brotli
 %{summary}.
@@ -195,7 +219,7 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %package mod-http-geoip
 Summary:           Nginx HTTP geoip module
 BuildRequires:     GeoIP-devel
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 Requires:          GeoIP
 
 %description mod-http-geoip
@@ -205,7 +229,7 @@ Requires:          GeoIP
 %package mod-http-geoip2
 Summary:           Nginx HTTP geoip2 module
 BuildRequires:     libmaxminddb-devel
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-http-geoip2
 %{summary}.
@@ -213,7 +237,7 @@ Requires:          nginx = %{epoch}:%{version}-%{release}
 %package mod-http-image-filter
 Summary:           Nginx HTTP image filter module
 BuildRequires:     gd-devel
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 Requires:          gd
 
 %description mod-http-image-filter
@@ -221,7 +245,7 @@ Requires:          gd
 
 %package mod-http-lua
 Summary:           Nginx HTTP lua module
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 # The original/upstream is missing some symbols
 Requires:          luajit-resty
 Requires:          lua-resty-core
@@ -233,7 +257,7 @@ Conflicts:         luajit
 
 %package mod-http-naxsi
 Summary:           Nginx HTTP naxsi module
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-http-naxsi
 %{summary}.
@@ -243,7 +267,7 @@ Summary:           Nginx HTTP passenger module
 BuildRequires:     rubygem-rake
 BuildRequires:     libcurl-devel
 BuildRequires:     ruby-devel
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-http-passenger
 %{summary}. (version %{passenger_version})
@@ -255,8 +279,7 @@ BuildRequires:     perl-devel
 BuildRequires:     perl-generators
 %endif
 BuildRequires:     perl(ExtUtils::Embed)
-Requires:          nginx = %{epoch}:%{version}-%{release}
-Requires:          perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:          nginx(abi) = %{nginx_abiversion}
 Requires:          perl(constant)
 
 %description mod-http-perl
@@ -265,21 +288,21 @@ Requires:          perl(constant)
 %package mod-http-xslt-filter
 Summary:           Nginx XSLT module
 BuildRequires:     libxslt-devel
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-http-xslt-filter
 %{summary}.
 
 %package mod-mail
 Summary:           Nginx mail modules
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-mail
 %{summary}.
 
 %package mod-stream
 Summary:           Nginx stream modules
-Requires:          nginx = %{epoch}:%{version}-%{release}
+Requires:          nginx(abi) = %{nginx_abiversion}
 
 %description mod-stream
 %{summary}.
@@ -295,8 +318,8 @@ Requires:          nginx-mod-stream
 
 %prep
 # Combine all keys from upstream into one file
-cat %{S:2} %{S:3} %{S:4} > %{_builddir}/%{name}.gpg
-#{gpgverify} --keyring='%{_builddir}/%{name}.gpg' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+cat %{S:2} %{S:3} %{S:4} %{S:5} %{S:6} > %{_builddir}/%{name}.gpg
+%{gpgverify} --keyring='%{_builddir}/%{name}.gpg' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %autosetup -p1
 # https://bugs.centos.org/view.php?id=17300
 %setup -q -D -T -c -a 301 -a 303 -a 304 -a 305 -a 306 -a 307 -a 308
@@ -355,7 +378,7 @@ export LUAJIT_LIB="$(pkg-config --libs luajit  | sed -e 's/-l//g')"
 if ! ./configure \
     --prefix=%{_datadir}/nginx \
     --sbin-path=%{_sbindir}/nginx \
-    --modules-path=%{_libdir}/nginx/modules \
+    --modules-path=%{nginx_moduledir} \
     --conf-path=%{_sysconfdir}/nginx/nginx.conf \
     --error-log-path=%{_localstatedir}/log/nginx/error.log \
     --http-log-path=%{_localstatedir}/log/nginx/access.log \
@@ -383,6 +406,7 @@ if ! ./configure \
     --with-http_flv_module \
 %if %{with geoip}
     --with-http_geoip_module=dynamic \
+    --with-stream_geoip_module=dynamic \
 %endif
     --with-http_gunzip_module \
     --with-http_gzip_static_module \
@@ -397,6 +421,7 @@ if ! ./configure \
     --with-http_stub_status_module \
     --with-http_sub_module \
     --with-http_v2_module \
+    --with-http_v3_module \
     --with-http_xslt_module=dynamic \
 %if %{with geoip2}
     --add-dynamic-module=ngx_http_geoip2_module-%{geoip2_version} \
@@ -421,6 +446,7 @@ if ! ./configure \
     --with-pcre \
     --with-pcre-jit \
     --with-stream=dynamic \
+    --with-stream_realip_module \
     --with-stream_ssl_module \
     --with-stream_ssl_preread_module \
     --with-threads \
@@ -456,8 +482,8 @@ install -p -d -m 0700 %{buildroot}%{_localstatedir}/lib/nginx/tmp
 install -p -d -m 0700 %{buildroot}%{_localstatedir}/log/nginx
 
 install -p -d -m 0755 %{buildroot}%{_datadir}/nginx/html
-install -p -d -m 0755 %{buildroot}%{_datadir}/nginx/modules
-install -p -d -m 0755 %{buildroot}%{_libdir}/nginx/modules
+install -p -d -m 0755 %{buildroot}%{nginx_moduleconfdir}
+install -p -d -m 0755 %{buildroot}%{nginx_moduledir}
 
 install -p -m 0644 ./nginx.conf \
     %{buildroot}%{_sysconfdir}/nginx
@@ -490,48 +516,48 @@ for i in ftdetect ftplugin indent syntax; do
 done
 
 %if %{with 51D}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_51D_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-51D.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_51D_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-51D.conf
 %endif
 %if %{with brotli}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_brotli_filter_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-brotli.conf
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_brotli_static_module.so";' \
-    >> %{buildroot}%{_datadir}/nginx/modules/mod-http-brotli.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_brotli_filter_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-brotli.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_brotli_static_module.so";' \
+    >> %{buildroot}%{nginx_moduleconfdir}/mod-http-brotli.conf
 %endif
 %if %{with geoip}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_geoip_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-geoip.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_geoip_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-geoip.conf
 %endif
 %if %{with geoip2}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_geoip2_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-geoip2.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_geoip2_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-geoip2.conf
 %endif
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_image_filter_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-image-filter.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_image_filter_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-image-filter.conf
 %if %{with lua}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_lua_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-lua.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_lua_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-lua.conf
 %endif
 %if %{with naxsi}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_naxsi_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-naxsi.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_naxsi_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-naxsi.conf
 %endif
 %if %{with passenger}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_passenger_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-passenger.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_passenger_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-passenger.conf
 %endif
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_perl_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-perl.conf
-echo 'load_module "%{_libdir}/nginx/modules/ngx_http_xslt_filter_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-http-xslt-filter.conf
-echo 'load_module "%{_libdir}/nginx/modules/ngx_mail_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-mail.conf
-echo 'load_module "%{_libdir}/nginx/modules/ngx_stream_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-stream.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_perl_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-perl.conf
+echo 'load_module "%{nginx_moduledir}/ngx_http_xslt_filter_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-http-xslt-filter.conf
+echo 'load_module "%{nginx_moduledir}/ngx_mail_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-mail.conf
+echo 'load_module "%{nginx_moduledir}/ngx_stream_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-stream.conf
 %if %{with geoip2}
-echo 'load_module "%{_libdir}/nginx/modules/ngx_stream_geoip2_module.so";' \
-    > %{buildroot}%{_datadir}/nginx/modules/mod-stream-geoip2.conf
+echo 'load_module "%{nginx_moduledir}/ngx_stream_geoip2_module.so";' \
+    > %{buildroot}%{nginx_moduleconfdir}/mod-stream-geoip2.conf
 %endif
 
 %if %{with naxsi}
@@ -663,7 +689,7 @@ fi
 %attr(770,%{nginx_user},root) %dir %{_localstatedir}/lib/nginx
 %attr(770,%{nginx_user},root) %dir %{_localstatedir}/lib/nginx/tmp
 %attr(700,%{nginx_user},root) %dir %{_localstatedir}/log/nginx
-%dir %{_libdir}/nginx/modules
+%dir %{nginx_moduledir}
 
 #files all-modules
 
@@ -678,79 +704,89 @@ fi
 
 %if %{with 51D}
 %files mod-http-51D
-%{_datadir}/nginx/modules/mod-http-51D.conf
-%{_libdir}/nginx/modules/ngx_http_51D_module.so
+%{nginx_moduleconfdir}/mod-http-51D.conf
+%{nginx_moduledir}/ngx_http_51D_module.so
 %endif
 
 %if %{with brotli}
 %files mod-http-brotli
-%{_datadir}/nginx/modules/mod-http-brotli.conf
-%{_libdir}/nginx/modules/ngx_http_brotli_filter_module.so
-%{_libdir}/nginx/modules/ngx_http_brotli_static_module.so
+%{nginx_moduleconfdir}/mod-http-brotli.conf
+%{nginx_moduledir}/ngx_http_brotli_filter_module.so
+%{nginx_moduledir}/ngx_http_brotli_static_module.so
 %endif
 
 %if %{with geoip}
 %files mod-http-geoip
-%{_datadir}/nginx/modules/mod-http-geoip.conf
-%{_libdir}/nginx/modules/ngx_http_geoip_module.so
+%{nginx_moduleconfdir}/mod-http-geoip.conf
+%{nginx_moduledir}/ngx_http_geoip_module.so
 %endif
 
 %if %{with geoip2}
 %files mod-http-geoip2
-%{_datadir}/nginx/modules/mod-http-geoip2.conf
-%{_libdir}/nginx/modules/ngx_http_geoip2_module.so
+%{nginx_moduleconfdir}/mod-http-geoip2.conf
+%{nginx_moduledir}/ngx_http_geoip2_module.so
 %endif
 
 %files mod-http-image-filter
-%{_datadir}/nginx/modules/mod-http-image-filter.conf
-%{_libdir}/nginx/modules/ngx_http_image_filter_module.so
+%{nginx_moduleconfdir}/mod-http-image-filter.conf
+%{nginx_moduledir}/ngx_http_image_filter_module.so
 
 %if %{with lua}
 %files mod-http-lua
-%{_datadir}/nginx/modules/mod-http-lua.conf
-%{_libdir}/nginx/modules/ngx_http_lua_module.so
+%{nginx_moduleconfdir}/mod-http-lua.conf
+%{nginx_moduledir}/ngx_http_lua_module.so
 %endif
 
 %if %{with naxsi}
 %files mod-http-naxsi
 %config(noreplace) %{_sysconfdir}/nginx/naxsi_core.rules
-%{_datadir}/nginx/modules/mod-http-naxsi.conf
-%{_libdir}/nginx/modules/ngx_http_naxsi_module.so
+%{nginx_moduleconfdir}/mod-http-naxsi.conf
+%{nginx_moduledir}/ngx_http_naxsi_module.so
 %endif
 
 %if %{with passenger}
 %files mod-http-passenger
-%{_datadir}/nginx/modules/mod-http-passenger.conf
-%{_libdir}/nginx/modules/ngx_http_passenger_module.so
+%{nginx_moduleconfdir}/mod-http-passenger.conf
+%{nginx_moduledir}/ngx_http_passenger_module.so
 %endif
 
 %files mod-http-perl
-%{_datadir}/nginx/modules/mod-http-perl.conf
-%{_libdir}/nginx/modules/ngx_http_perl_module.so
+%{nginx_moduleconfdir}/mod-http-perl.conf
+%{nginx_moduledir}/ngx_http_perl_module.so
 %dir %{perl_vendorarch}/auto/nginx
 %{perl_vendorarch}/nginx.pm
 %{perl_vendorarch}/auto/nginx/nginx.so
 
 %files mod-http-xslt-filter
-%{_datadir}/nginx/modules/mod-http-xslt-filter.conf
-%{_libdir}/nginx/modules/ngx_http_xslt_filter_module.so
+%{nginx_moduleconfdir}/mod-http-xslt-filter.conf
+%{nginx_moduledir}/ngx_http_xslt_filter_module.so
 
 %files mod-mail
-%{_datadir}/nginx/modules/mod-mail.conf
-%{_libdir}/nginx/modules/ngx_mail_module.so
+%{nginx_moduleconfdir}/mod-mail.conf
+%{nginx_moduledir}/ngx_mail_module.so
 
 %files mod-stream
-%{_datadir}/nginx/modules/mod-stream.conf
-%{_libdir}/nginx/modules/ngx_stream_module.so
+%{nginx_moduleconfdir}/mod-stream.conf
+%{nginx_moduledir}/ngx_stream_module.so
 
 %if %{with geoip2}
 %files mod-stream-geoip2
-%{_datadir}/nginx/modules/mod-stream-geoip2.conf
-%{_libdir}/nginx/modules/ngx_stream_geoip2_module.so
+%{nginx_moduleconfdir}/mod-stream-geoip2.conf
+%{nginx_moduledir}/ngx_stream_geoip2_module.so
 %endif
 
 
 %changelog
+* Wed Nov 20 2024 Matthias Saou <matthias@saou.eu> 2:1.26.2-1.ex1
+- Bump epoch to 2 to match Red Hat's change :-(
+- Update to 1.26.2.
+- Update naxsi to 1.6.
+- Update Phusion Passenger to 6.0.23.
+- Update lua module to 0.10.27.
+
+* Tue Jan 16 2024 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex6
+- Build EL9 against openssl1.1 for performance reasons.
+
 * Thu May 18 2023 Matthias Saou <matthias@saou.eu> 1:1.24.0-1.ex5
 - Include the mandatory ssl patches when lua is enabled.
 
