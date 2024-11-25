@@ -1,7 +1,7 @@
 %define __perl_requires %{SOURCE98}
 
 Name:     squid6
-Version:  6.6
+Version:  6.11
 Release:  1%{?dist}.ex1
 Summary:  The Squid proxy caching server
 Epoch:    7
@@ -118,7 +118,7 @@ sed -i 's|@SYSCONFDIR@/squid.conf.documented|%{_pkgdocdir}/squid.conf.documented
 
 %build
 # Increase the 128 default
-export CXXFLAGS="%{build_cxxflags} -DMAXTCPLISTENPORTS=512"
+export CXXFLAGS="%{build_cxxflags} -DMAXTCPLISTENPORTS=4096"
 
 # NIS helper has been removed because of the following bug
 # https://bugzilla.redhat.com/show_bug.cgi?id=1531540
@@ -352,8 +352,26 @@ fi
 
 
 %changelog
+* Thu Oct 17 2024 Matthias Saou <matthias@saou.eu> 7:6.11-1.ex1
+- Update to 6.11.
+
+* Thu Oct 17 2024 Matthias Saou <matthias@saou.eu> 7:6.10-1.ex1
+- Update to 6.10.
+
+* Thu Oct 17 2024 Matthias Saou <matthias@saou.eu> 7:6.9-1.ex1
+- Update to 6.9.
+
+* Thu Mar 14 2024 Matthias Saou <matthias@saou.eu> 7:6.8-1.ex2
+- Increase MAXTCPLISTENPORTS x3 (don't ask).
+
+* Tue Mar  5 2024 Matthias Saou <matthias@saou.eu> 7:6.8-1.ex1
+- Update to 6.8.
+
+* Wed Feb  7 2024 Matthias Saou <matthias@saou.eu> 7:6.7-1.ex1
+- Update to 6.7.
+
 * Wed Dec 20 2023 Matthias Saou <matthias@saou.eu> 7:6.6-1.ex1
-- Rename to squid5 to be parallel installable on el8 & el9.
+- Rename to squid6 to be parallel installable on el8 & el9.
 - Increase MAXTCPLISTENPORTS from 128 to 512.
 - Include QueueCapacity patch to raise the 1024 hardcoded limit.
 - Include fallback for el8 where %%sysusers_create_compat is missing.
