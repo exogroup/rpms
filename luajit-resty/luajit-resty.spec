@@ -1,10 +1,8 @@
-%global rctag beta3
-%global date 20230410
+%global date 20241113
 
 Name:           luajit-resty
 Version:        2.1.0
 %global apiver %(v=%{version}; echo ${v%.${v#[0-9].[0-9].}})
-%global srcver %{version}%{?rctag:-%{rctag}}
 Release:        0.3%{?date:_%{date}}%{?dist}
 Summary:        OpenResty version of the Just-In-Time Compiler for Lua
 License:        MIT
@@ -75,10 +73,10 @@ make check || true
 %license COPYRIGHT
 %doc README*
 %{_bindir}/luajit
-%{_bindir}/luajit-%{srcver}
+%{_bindir}/luajit-%{apiver}.*
 %{_libdir}/libluajit-*.so.*
 %{_mandir}/man1/luajit.1*
-%{_datadir}/luajit-%{srcver}/
+%{_datadir}/luajit-%{apiver}/
 
 %files devel
 %doc _tmp_html/html/
@@ -90,6 +88,10 @@ make check || true
 %{_libdir}/libluajit-*.a
 
 %changelog
+* Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 2.1-0.2_20241113
+- Update to v2.1-20241113.
+- Remove the beta3 rctag and srcver macro.
+
 * Thu May 18 2023 Matthias Saou <matthias@saou.eu> 2.1-0.2_20230410
 - Provide "lua(abi) = 5.1" required by C modules (cjson).
 - Build with lua-rpm-macros and require it from the devel sub-package.

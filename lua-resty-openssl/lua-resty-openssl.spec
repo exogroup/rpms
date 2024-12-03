@@ -2,7 +2,7 @@
 
 Summary: Lua FFI-based OpenSSL binding library for ngx_lua
 Name: lua-resty-openssl
-Version: 1.2.1
+Version: 1.5.1
 Release: 1%{?dist}
 License: BSD
 URL: https://github.com/fffonion/lua-resty-openssl
@@ -39,6 +39,9 @@ make install DESTDIR=%{buildroot} LUA_LIB_DIR=%{lua_pkgdir}
 
 
 %changelog
+* Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 1.5.1-1
+- Update to 1.5.1.
+
 * Fri Apr 05 2024 Michele Brodoloni <michele@exads.com> - 1.2.1-1
 - Initial RPM release.
 

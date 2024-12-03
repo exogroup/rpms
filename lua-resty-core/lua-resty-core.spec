@@ -2,7 +2,7 @@
 
 Summary: FFI-based Lua API for the lua nginx module
 Name: lua-resty-core
-Version: 0.1.26
+Version: 0.1.30
 Release: 1%{?dist}
 License: BSD
 URL: https://github.com/openresty/lua-resty-core
@@ -10,6 +10,7 @@ Source0: https://github.com/openresty/lua-resty-core/archive/refs/tags/v%{versio
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: lua-resty-lrucache
+BuildRequires: make
 BuildRequires: luajit-resty-devel
 
 %description
@@ -38,6 +39,9 @@ make install DESTDIR=%{buildroot} LUA_LIB_DIR=%{lua_pkgdir}
 
 
 %changelog
+* Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 0.1.30-1
+- Update to 0.1.30.
+
 * Thu May 18 2023 Matthias Saou <matthias@saou.eu> 0.1.26-1
 - Initial RPM release.
 

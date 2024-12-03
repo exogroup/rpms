@@ -2,13 +2,14 @@
 
 Summary: Lua-land LRU cache based on the LuaJIT FFI
 Name: lua-resty-lrucache
-Version: 0.13
+Version: 0.15
 Release: 1%{?dist}
 License: BSD
 URL: https://github.com/openresty/lua-resty-lrucache
 Source0: https://github.com/openresty/lua-resty-lrucache/archive/refs/tags/v%{version}/lua-resty-lrucache-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
+BuildRequires: make
 BuildRequires: luajit-resty-devel
 
 %description
@@ -36,6 +37,9 @@ make install DESTDIR=%{buildroot} LUA_LIB_DIR=%{lua_pkgdir}
 
 
 %changelog
+* Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 0.15-1
+- Update to 0.15.
+
 * Thu May 18 2023 Matthias Saou <matthias@saou.eu> 0.13-1
 - Initial RPM release.
 

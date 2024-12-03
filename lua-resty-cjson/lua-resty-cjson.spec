@@ -3,8 +3,8 @@
 
 Summary: JSON support for Lua
 Name: lua-resty-cjson
-Version: 2.1.0.12
-Release: 2%{?dist}
+Version: 2.1.0.14
+Release: 1%{?dist}
 License: MIT
 URL: https://github.com/openresty/lua-cjson/
 Source0: https://github.com/openresty/lua-cjson/archive/refs/tags/%{version}/lua-cjson-%{version}.tar.gz
@@ -54,6 +54,9 @@ done
 
 
 %changelog
+* Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 2.1.0.14-1
+- Update to 2.1.0.14 tag (still no release).
+
 * Thu May 18 2023 Matthias Saou <matthias@saou.eu> 2.1.0.12-2
 - Remove jit from the name, back to the original one.
 - Leverage lua-rpm-macros provided macros.
