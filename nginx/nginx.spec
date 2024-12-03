@@ -47,11 +47,6 @@
 %global openssl_pkgversion 11
 %endif
 
-# Build against OpenSSL 3 on EL8
-%if 0%{?rhel} == 8
-%global openssl_pkgversion 3
-%endif
-
 # Build against OpenSSL 1.1 on EL9
 %if 0%{?rhel} == 9
 %global openssl_pkgversion 1.1
@@ -72,7 +67,7 @@
 Name:              nginx
 Epoch:             2
 Version:           1.26.2
-Release:           1%{?dist}.ex2
+Release:           1%{?dist}.ex3
 
 Summary:           A high performance web server and reverse proxy server
 License:           BSD-2-Clause
@@ -366,7 +361,7 @@ export DESTDIR=%{buildroot}
 export EXTRA_CXXFLAGS="-I%{_includedir}/openssl11"
 export EXTRA_LDFLAGS="-L%{_libdir}/openssl11"
 %endif
-cc_opt="%{optflags} $(pcre-config --cflags)"
+cc_opt="%{optflags} $(pcre2-config --cflags)"
 %if %{with 51D}
 cc_opt="${cc_opt} -std=gnu11 -fcommon"
 %endif
@@ -777,6 +772,9 @@ fi
 
 
 %changelog
+* Mon Nov 25 2024 Matthias Saou <matthias@saou.eu> 2:1.26.2-1.ex3
+- Fix EL8 build.
+
 * Wed Nov 20 2024 Matthias Saou <matthias@saou.eu> 2:1.26.2-1.ex1
 - Bump epoch to 2 to match Red Hat's change :-(
 - Update to 1.26.2.
