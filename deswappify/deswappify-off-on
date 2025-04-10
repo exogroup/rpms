@@ -1,0 +1,4 @@
+#!/bin/bash
+deswappify
+swapoff -a
+swapon -a
