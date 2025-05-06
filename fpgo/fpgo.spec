@@ -1,11 +1,11 @@
 %global daemon_name fpgo
 
 Name: fpgo
-Version: 0.2.1
+Version: 1.1.6
 Release: 1
 Summary: Fasthttp forward proxy
 License: Public Domain
-URL: https://github.com/joeky888/fpgo
+URL: https://github.com/app-fast/fpgo/
 # Created by prep-packages.sh
 Source0: fpgo-%{version}.tar.gz
 Source1: fpgo.service
@@ -54,6 +54,12 @@ install -D -p -m 0644 %{SOURCE2} \
 
 
 %changelog
+* Tue May  6 2025 Matthias Saou <matthias@saou.eu> 1.1.6-1
+- Update to 1.1.6.
+
+* Tue Mar 25 2025 Matthias Saou <matthias@saou.eu> 1.1.4-1
+- Update to 1.1.4.
+
 * Tue Oct  3 2023 Matthias Saou <matthias@saou.eu> 0.2.1-1
 - Initial RPM release.
 
