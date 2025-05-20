@@ -28,13 +28,10 @@
 
 # Custom
 %global geoip2_version 3.4
-%global naxsi_version 1.6
-%global passenger_version 6.0.23
+%global naxsi_version 1.7
+%global passenger_version 6.0.27
 %global brotli_version 1.0.0rc
-%global fiftyoned_version 4.4.9
-%global fiftyoned_cxx_version 4.4.18
-%global fiftyoned_common_cxx_version 4.4.17
-%global lua_version 0.10.27
+%global lua_version 0.10.28
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -66,8 +63,8 @@
 
 Name:              nginx
 Epoch:             2
-Version:           1.26.2
-Release:           1%{?dist}.ex3
+Version:           1.26.3
+Release:           1%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
 License:           BSD-2-Clause
@@ -95,10 +92,7 @@ Source301:         https://github.com/leev/ngx_http_geoip2_module/archive/%{geoi
 Source302:         https://github.com/wargio/naxsi/releases/download/%{naxsi_version}/naxsi-%{naxsi_version}-src-with-deps.tar.gz
 Source303:         https://github.com/phusion/passenger/archive/release-%{passenger_version}/passenger-release-%{passenger_version}.tar.gz
 Source304:         https://github.com/google/ngx_brotli/archive/v%{brotli_version}/ngx_brotli-%{brotli_version}.tar.gz
-Source305:         https://github.com/51Degrees/device-detection-nginx/archive/%{fiftyoned_version}/device-detection-nginx-%{fiftyoned_version}.tar.gz
-Source306:         https://github.com/51Degrees/device-detection-cxx/archive/%{fiftyoned_cxx_version}/device-detection-cxx-%{fiftyoned_cxx_version}.tar.gz
-Source307:         https://github.com/51Degrees/common-cxx/archive/%{fiftyoned_common_cxx_version}/common-cxx-%{fiftyoned_common_cxx_version}.tar.gz
-Source308:         https://github.com/openresty/lua-nginx-module/archive/refs/tags/v%{lua_version}/lua-nginx-module-%{lua_version}.tar.gz
+Source305:         https://github.com/openresty/lua-nginx-module/archive/refs/tags/v%{lua_version}/lua-nginx-module-%{lua_version}.tar.gz
 
 # removes -Werror in upstream build scripts.  -Werror conflicts with
 # -D_FORTIFY_SOURCE=2 causing warnings to turn into errors.
@@ -113,8 +107,7 @@ Source2000:        https://github.com/openresty/openresty/raw/master/patches/ngi
 Source2001:        https://github.com/openresty/openresty/raw/master/patches/nginx-1.23.0-ssl_sess_cb_yield.patch
 Source2002:        https://github.com/openresty/openresty/raw/master/patches/nginx-1.23.0-ssl_client_hello_cb_yield.patch
 
-Source1000:        device-detection-nginx-4.4.3-libatomic.patch
-Source1001:        lua-nginx-module-0.10.24-pcre.patch
+Source1000:        lua-nginx-module-0.10.24-pcre.patch
 
 BuildRequires:     make
 BuildRequires:     gcc
@@ -125,9 +118,6 @@ BuildRequires:     gperftools-devel
 BuildRequires:     openssl%{?openssl_pkgversion}-devel
 BuildRequires:     pcre2-devel
 BuildRequires:     zlib-devel
-%if %{with 51D}
-BuildRequires:     libatomic
-%endif
 %if %{with lua}
 BuildRequires:     luajit-resty-devel
 %endif
@@ -194,13 +184,6 @@ Requires(pre):     shadow-utils
 The nginx-filesystem package contains the basic directory layout
 for the Nginx server including the correct permissions for the
 directories.
-
-%package mod-http-51D
-Summary:           Nginx HTTP 51Degrees module
-Requires:          nginx(abi) = %{nginx_abiversion}
-
-%description mod-http-51D
-%{summary}.
 
 %package mod-http-brotli
 Summary:           Nginx HTTP brotli module
@@ -317,12 +300,13 @@ cat %{S:2} %{S:3} %{S:4} %{S:5} %{S:6} > %{_builddir}/%{name}.gpg
 %{gpgverify} --keyring='%{_builddir}/%{name}.gpg' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %autosetup -p1
 # https://bugs.centos.org/view.php?id=17300
-%setup -q -D -T -c -a 301 -a 303 -a 304 -a 305 -a 306 -a 307 -a 308
+%setup -q -D -T -c -a 301 -a 303 -a 304 -a 305
 # Annoying source with top level files
 (mkdir naxsi-%{naxsi_version}; cd naxsi-%{naxsi_version}; tar xzf %{SOURCE302})
 cp %{SOURCE200} %{SOURCE210} %{SOURCE10} %{SOURCE12} .
-(cd device-detection-nginx-%{fiftyoned_version}; patch -p1 < %{SOURCE1000})
-(cd lua-nginx-module-%{lua_version}; patch -p1 < %{SOURCE1001})
+%if 0%{?rhel} < 10
+(cd lua-nginx-module-%{lua_version}; patch -p1 < %{SOURCE1000})
+%endif
 %if %{with lua}
 patch -p1 < %{SOURCE2000}
 patch -p1 < %{SOURCE2001}
@@ -341,14 +325,6 @@ sed \
   -i auto/lib/openssl/conf
 %endif
 
-pushd device-detection-nginx-%{fiftyoned_version}
-  cp module_conf/hash_config 51Degrees_module/config
-  # Get device-detection-cxx source into place (normally sub-module)
-  mv ../device-detection-cxx-%{fiftyoned_cxx_version}/src 51Degrees_module/
-  # Get common-cxx source into place (normally also sub-module)
-  mv ../common-cxx-%{fiftyoned_common_cxx_version}/* 51Degrees_module/src/common-cxx/
-popd
-
 
 %build
 # nginx does not utilize a standard configure script.  It has its own
@@ -362,9 +338,6 @@ export EXTRA_CXXFLAGS="-I%{_includedir}/openssl11"
 export EXTRA_LDFLAGS="-L%{_libdir}/openssl11"
 %endif
 cc_opt="%{optflags} $(pcre2-config --cflags)"
-%if %{with 51D}
-cc_opt="${cc_opt} -std=gnu11 -fcommon"
-%endif
 %if %{with lua}
 # Both expect a single value, the include path and the lib name
 export LUAJIT_INC="$(pkg-config --cflags luajit  | sed -e 's/-I//g')"
@@ -429,9 +402,6 @@ if ! ./configure \
 %endif
 %if %{with brotli}
     --add-dynamic-module=ngx_brotli-%{brotli_version} \
-%endif
-%if %{with 51D}
-    --add-dynamic-module=device-detection-nginx-%{fiftyoned_version}/51Degrees_module \
 %endif
 %if %{with lua}
     --add-dynamic-module=lua-nginx-module-%{lua_version} \
@@ -510,10 +480,6 @@ for i in ftdetect ftplugin indent syntax; do
         %{buildroot}%{_datadir}/vim/vimfiles/${i}/nginx.vim
 done
 
-%if %{with 51D}
-echo 'load_module "%{nginx_moduledir}/ngx_http_51D_module.so";' \
-    > %{buildroot}%{nginx_moduleconfdir}/mod-http-51D.conf
-%endif
 %if %{with brotli}
 echo 'load_module "%{nginx_moduledir}/ngx_http_brotli_filter_module.so";' \
     > %{buildroot}%{nginx_moduleconfdir}/mod-http-brotli.conf
@@ -569,11 +535,6 @@ exit 0
 
 %post
 %systemd_post nginx.service
-
-%post mod-http-51D
-if [ $1 -eq 1 ]; then
-    /usr/bin/systemctl reload nginx.service >/dev/null 2>&1 || :
-fi
 
 %post mod-http-brotli
 if [ $1 -eq 1 ]; then
@@ -697,12 +658,6 @@ fi
 %dir %{_sysconfdir}/systemd/system/nginx.service.d
 %dir %{_unitdir}/nginx.service.d
 
-%if %{with 51D}
-%files mod-http-51D
-%{nginx_moduleconfdir}/mod-http-51D.conf
-%{nginx_moduledir}/ngx_http_51D_module.so
-%endif
-
 %if %{with brotli}
 %files mod-http-brotli
 %{nginx_moduleconfdir}/mod-http-brotli.conf
@@ -772,6 +727,16 @@ fi
 
 
 %changelog
+* Tue May 20 2025 Matthias Saou <matthias@saou.eu> 2:1.26.3-1.ex2
+- Don't apply non-working pcre patch on RHEL 10.
+
+* Tue Apr 15 2025 Matthias Saou <matthias@saou.eu> 2:1.26.3-1.ex1
+- Update to 1.26.3.
+- Update naxsi to 1.7.
+- Update Phusion Passenger to 6.0.27.
+- Update lua module to 0.10.28.
+- Remove 51Degrees.
+
 * Mon Nov 25 2024 Matthias Saou <matthias@saou.eu> 2:1.26.2-1.ex3
 - Fix EL8 build.
 
