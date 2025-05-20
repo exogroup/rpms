@@ -1,0 +1,12 @@
+diff -Naupr fpgo-1.1.6.orig/main.go fpgo-1.1.6/main.go
+--- fpgo-1.1.6.orig/main.go	2025-05-06 16:48:32.000000000 +0200
++++ fpgo-1.1.6/main.go	2025-05-06 18:42:23.908744581 +0200
+@@ -57,7 +57,7 @@ var (
+ 
+ 	fastclient = fasthttp.Client{
+ 		NoDefaultUserAgentHeader: true,
+-		Dial:                     defaultDialer.Dial,
++		Dial:                     defaultDialer.DialDualStack,
+ 		MaxConnWaitTimeout:       3 * time.Second,
+ 	}
+ )

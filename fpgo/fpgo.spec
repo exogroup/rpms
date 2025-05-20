@@ -2,7 +2,7 @@
 
 Name: fpgo
 Version: 1.1.6
-Release: 1
+Release: 2
 Summary: Fasthttp forward proxy
 License: Public Domain
 URL: https://github.com/app-fast/fpgo/
@@ -15,6 +15,7 @@ BuildRequires: golang
 # For DynamicUser= support
 BuildRequires: systemd >= 232
 %{?systemd_requires}
+Patch0: fpgo-1.1.6-ipv6.patch
 
 %description
 Fasthttp forward proxy.
@@ -22,6 +23,7 @@ Fasthttp forward proxy.
 
 %prep
 %setup -q
+%autopatch
 
 
 %build
@@ -54,6 +56,9 @@ install -D -p -m 0644 %{SOURCE2} \
 
 
 %changelog
+* Tue May  6 2025 Matthias Saou <matthias@saou.eu> 1.1.6-2
+- Include IPv6 patch.
+
 * Tue May  6 2025 Matthias Saou <matthias@saou.eu> 1.1.6-1
 - Update to 1.1.6.
 
