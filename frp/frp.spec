@@ -8,15 +8,13 @@
 %endif
 
 Name: frp
-Version: 0.46.0
+Version: 0.62.1
 Release: 1
 License: ASL 2.0
 URL: https://github.com/fatedier/frp
 Source0: https://github.com/fatedier/frp/releases/download/v%{version}/frp_%{version}_linux_amd64.tar.gz
 Source1: https://github.com/fatedier/frp/releases/download/v%{version}/frp_%{version}_linux_arm64.tar.gz
 Source2: frps.service
-Source3: frps.ini
-Source4: frpc.ini
 Summary: Fast reverse proxy to expose a server behind NAT/firewall to the internet
 ExclusiveArch: x86_64 aarch64
 BuildRequires: systemd
@@ -60,8 +58,8 @@ mkdir -p %{buildroot}%{_var}/log/frp
 install -m 0755 -D frps %{buildroot}%{_bindir}/frps
 install -m 0755 -D frpc %{buildroot}%{_bindir}/frpc
 install -m 0644 -D %{SOURCE2} %{buildroot}%{_unitdir}/frps.service
-install -m 0644 -D %{SOURCE3} %{buildroot}%{_sysconfdir}/frp/frps.ini
-install -m 0644 -D %{SOURCE4} %{buildroot}%{_sysconfdir}/frp/frpc.ini
+install -m 0644 -D frps.toml %{buildroot}%{_sysconfdir}/frp/frps.toml
+install -m 0644 -D frpc.toml %{buildroot}%{_sysconfdir}/frp/frpc.toml
 
 
 %pre server
@@ -72,20 +70,20 @@ getent passwd frp >/dev/null || \
 
 
 %files server
-%doc frps.ini frps_full.ini
+%doc frps.toml
 %license LICENSE
 %dir %{_sysconfdir}/frp/
 %dir %attr(0755,frp,frp) %{_var}/log/frp/
-%config(noreplace) %{_sysconfdir}/frp/frps.ini
+%config(noreplace) %{_sysconfdir}/frp/frps.toml
 %{_bindir}/frps
 %{_unitdir}/frps.service
 
 
 %files client
-%doc frpc.ini frpc_full.ini
+%doc frpc.toml
 %license LICENSE
 %dir %{_sysconfdir}/frp/
-%config(noreplace) %{_sysconfdir}/frp/frpc.ini
+%config(noreplace) %{_sysconfdir}/frp/frpc.toml
 %{_bindir}/frpc
 
 
@@ -102,6 +100,9 @@ getent passwd frp >/dev/null || \
 
 
 %changelog
+* Wed May 21 2025 Michele Brodoloni <michele@exads.com> - 0.62.1-1
+- Update to 0.62.1
+
 * Wed Jan 04 2023 Michele Brodoloni <michele@exads.com> - 0.46.0-1
 - Update to 0.46.0
 
