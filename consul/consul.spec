@@ -12,8 +12,8 @@
 
 Summary: Tool for service discovery and configuration
 Name: consul
-Version: 1.17.1
-Release: 2
+Version: 1.21.0
+Release: 1
 License: MPLv2.0
 URL: https://consul.io/
 Source0: https://releases.hashicorp.com/consul/%{version}/consul_%{version}_linux_%{binarch}.zip
@@ -74,6 +74,9 @@ getent passwd consul >/dev/null || \
 
 
 %changelog
+* Wed May 21 2025 Matthias Saou <matthias@saou.eu> 1.21.0-1
+- Update to 1.21.0.
+
 * Tue Jan  9 2024 Matthias Saou <matthias@saou.eu> 1.17.1-2
 - Update to 1.17.1.
 - Include changes to fix el9 minimal build.
