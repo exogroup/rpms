@@ -15,7 +15,7 @@
 
 Summary:       Aerospike PHP Client
 Name:          %{?scl_prefix}php-%{pecl_name}
-Version:       1.1.0
+Version:       1.2.0
 %if 0%{?gh_date:1}
 Release:       1.%{gh_date}git%{gh_short}%{?dist}%{!?scl:%{!?nophptag:%(%{__php} -r 'echo ".".PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')}}
 %else
@@ -166,6 +166,9 @@ cd ../ZTS
 
 
 %changelog
+* Mon May 26 2025 Matthias Saou <matthias@saou.eu> 1.2.0-1
+- Update to 1.2.0.
+
 * Mon Nov 11 2024 Matthias Saou <matthias@saou.eu> 1.1.0-1
 - Update to 1.1.0.
 - Rename aerospike-local-daemon to aerospike-connection-manager.
