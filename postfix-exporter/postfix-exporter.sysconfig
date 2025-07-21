@@ -1,0 +1,4 @@
+# Postfix Prometheus Exporter
+
+# Extra command line arguments
+OPTIONS="--postfix.logfile_path=/var/log/maillog"

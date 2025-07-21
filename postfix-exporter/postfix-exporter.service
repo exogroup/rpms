@@ -1,0 +1,16 @@
+[Unit]
+Description=Postfix Prometheus Exporter
+After=network.target syslog.target
+Wants=network.target
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=5s
+User=postfix-exporter
+Group=postfix-exporter
+EnvironmentFile=-/etc/sysconfig/postfix-exporter
+ExecStart=/usr/bin/postfix-exporter $OPTIONS
+
+[Install]
+WantedBy=multi-user.target
