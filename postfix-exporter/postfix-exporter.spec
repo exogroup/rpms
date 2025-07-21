@@ -1,13 +1,14 @@
 Name: postfix-exporter
 Version: 0.11.0
 Release: 1
+Summary: Prometheus metrics exporter for Postfix
 License: ASL 2.0
 URL: https://github.com/Hsn723/postfix_exporter
 Source0: https://github.com/Hsn723/postfix_exporter/releases/download/v%{version}/postfix_exporter_%{version}_linux_amd64.tar.gz
 Source1: postfix-exporter.service
 Source2: postfix-exporter.sysconfig
-Summary: A Prometheus exporter for Postfix
 BuildRequires: systemd
+ExclusiveArch: x86_64
 
 
 %description
@@ -25,8 +26,8 @@ journal, the Docker logs, or from a log file.
 
 %install
 install -m 0755 -D postfix_exporter %{buildroot}%{_bindir}/postfix-exporter
-install -m 0644 -D %{SOURCE1} %{buildroot}%{_unitdir}/postfix-exporter.service
-install -m 0644 -D %{SOURCE2} %{buildroot}%{_sysconfdir}/sysconfig/postfix-exporter
+install -m 0644 -D -p %{SOURCE1} %{buildroot}%{_unitdir}/postfix-exporter.service
+install -m 0644 -D -p %{SOURCE2} %{buildroot}%{_sysconfdir}/sysconfig/postfix-exporter
 
 
 %pre
@@ -35,14 +36,6 @@ getent passwd postfix-exporter >/dev/null || \
   useradd -r -d /dev/null -g postfix-exporter \
   -s /sbin/nologin -c "Postfix Prometheus Exporter" postfix-exporter
 
-
-%files
-%doc README.md
-%doc CHANGELOG.md
-%license LICENSE
-%{_bindir}/postfix-exporter
-%{_sysconfdir}/sysconfig/postfix-exporter
-%{_unitdir}/postfix-exporter.service
 
 %post
 %systemd_post postfix-exporter.service
@@ -54,6 +47,15 @@ getent passwd postfix-exporter >/dev/null || \
 
 %postun
 %systemd_postun postfix-exporter.service
+
+
+%files
+%doc README.md
+%doc CHANGELOG.md
+%license LICENSE
+%config(noreplace) %{_sysconfdir}/sysconfig/postfix-exporter
+%{_bindir}/postfix-exporter
+%{_unitdir}/postfix-exporter.service
 
 
 %changelog
