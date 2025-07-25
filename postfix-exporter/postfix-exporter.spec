@@ -1,10 +1,10 @@
 Name: postfix-exporter
 Version: 0.11.0
-Release: 1
+Release: 2
 Summary: Prometheus metrics exporter for Postfix
 License: ASL 2.0
 URL: https://github.com/Hsn723/postfix_exporter
-Source0: https://github.com/Hsn723/postfix_exporter/releases/download/v%{version}/postfix_exporter_%{version}_linux_amd64.tar.gz
+Source0: https://github.com/Hsn723/postfix_exporter/releases/download/v%{version}/postfix_exporter_systemd_%{version}_linux_amd64.tar.gz
 Source1: postfix-exporter.service
 Source2: postfix-exporter.sysconfig
 BuildRequires: systemd
@@ -59,6 +59,9 @@ getent passwd postfix-exporter >/dev/null || \
 
 
 %changelog
+* Fri Jul 25 2025 Michele Brodoloni <michele@exads.com> - 0.11.0-2
+- Use package with systemd support
+
 * Mon Jul 21 2025 Michele Brodoloni <michele@exads.com> - 0.11.0-1
 - Initial release
 
