@@ -1,10 +1,12 @@
+# Fix "Empty %files file" debugsourcefiles.list (we have no sources, duh!)
+%define _debugsource_template %{nil}
 # Work around 'ERROR: No build ID note found in ...'
 %undefine _missing_build_ids_terminate_build
 
 %global daemon_name kafka_exporter
 
 Name:             kafka_exporter
-Version:          1.3.1
+Version:          1.9.0
 Release:          1
 Summary:          Kafka exporter for Prometheus
 Group:            Applications/System
@@ -13,6 +15,7 @@ URL:              https://github.com/danielqsj/kafka_exporter
 Source0:          https://github.com/danielqsj/kafka_exporter/releases/download/v%{version}/kafka_exporter-%{version}.linux-amd64.tar.gz
 Source1:          kafka_exporter@.service
 %{?systemd_requires}
+BuildRequires:    systemd
 ExclusiveArch:    x86_64
 
 %description
@@ -57,6 +60,9 @@ getent passwd kafka_exporter >/dev/null || \
 
 
 %changelog
+* Wed Aug 13 2025 Matthias Saou <matthias@saou.eu> 1.9.0-1
+- Update to 1.9.0.
+
 * Wed Aug 11 2021 Matthias Saou <matthias@saou.eu> 1.3.1-1
 - Update to 1.3.1.
 - Use binary release as source, pulling prometheus was now 800MB for .src.rpm.
