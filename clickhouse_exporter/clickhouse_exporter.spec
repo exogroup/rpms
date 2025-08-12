@@ -1,10 +1,10 @@
-%global commit 7ab68be424d34180d23a5625cadb5d8fdee59770
+%global commit 2263a68c67ddb3cc9cbda3f7caba6681742225aa
 %global shortcommit %(c=%{commit}; echo ${c:0:7})
 %global daemon_name clickhouse_exporter
 
 Name:             clickhouse_exporter
 Version:          0
-Release:          0.3.%{shortcommit}
+Release:          0.4.%{shortcommit}
 Summary:          Prometheus exporter for the metrics available in ClickHouse
 Group:            Applications/System
 License:          MIT
@@ -63,6 +63,10 @@ getent passwd clickhouse_exporter >/dev/null || \
 
 
 %changelog
+* Tue Aug 12 2025 Matthias Saou <matthias@saou.eu> 0.0-4.2263a68c
+- Update to the latest upstream code, despite being obsolete, as it still
+  provides parts per table metrics.
+
 * Tue Apr 11 2023 Matthias Saou <matthias@saou.eu> 0.0-3.7ab68be4
 - Update to the latest upstream code from ClickHouse org to fix v23+ errors.
 - Switch to using go modules.
