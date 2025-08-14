@@ -1,14 +1,17 @@
+# Fix "Empty %files file" debugsourcefiles.list (we have no sources, duh!)
+%define _debugsource_template %{nil}
+
 Summary: ClickHouse http proxy and load balancer
 Name: chproxy
-Version: 1.26.2
+Version: 1.28.0
 Release: 1
 License: MIT
-URL: https://github.com/Vertamedia/chproxy
+URL: https://www.chproxy.org/
 Source0: https://github.com/ContentSquare/chproxy/releases/download/v%{version}/chproxy_%{version}_linux_amd64.tar.gz
-Source1: https://raw.githubusercontent.com/Vertamedia/chproxy/master/config/examples/simple.yml
+Source1: https://raw.githubusercontent.com/ContentSquare/chproxy/master/config/examples/simple.yml
 Source2: chproxy.service
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 ExclusiveArch: x86_64
+BuildRequires: systemd
 %{?systemd_requires}
 
 %description
@@ -53,6 +56,9 @@ getent passwd chproxy >/dev/null || \
 
 
 %changelog
+* Thu Aug 14 2025 Matthias Saou <matthias@saou.eu> 1.28.0-1
+- Update to 1.28.0.
+
 * Tue Apr 16 2024 Matthias Saou <matthias@saou.eu> 1.26.2-1
 - Update to 1.26.2.
 
