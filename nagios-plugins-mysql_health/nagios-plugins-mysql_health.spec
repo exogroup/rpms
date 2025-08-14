@@ -1,7 +1,7 @@
 Summary: Provides check_mysql_health support for Nagios
 Name: nagios-plugins-mysql_health
 Version: 2.2.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: GPLv2
 Group: Applications/System
 URL: https://labs.consol.de/nagios/check_mysql_health/
@@ -11,6 +11,7 @@ Patch1: check_mysql_health-2.1.3-myisam_keycache_hitrate_thresholds.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires: nagios-plugins
 Requires: perl(DBD::mysql)
+BuildRequires: make
 BuildRequires: perl-generators
 BuildRequires: perl(DBD::mysql)
 BuildArch: noarch
@@ -21,8 +22,8 @@ Provides check_mysql_health support for Nagios.
 
 %prep
 %setup -q -n check_mysql_health-%{version}
-%patch0 -p1
-%patch1 -p1
+%patch 0 -p1
+%patch 1 -p1
 
 
 %build
@@ -49,6 +50,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Mon Aug 11 2025 Matthias Saou <matthias@saou.eu> 2.2.2-3
+- Add make buildrequires for more minimal build environments.
+
 * Wed Feb  1 2023 Matthias Saou <matthias@saou.eu> 2.2.2-2
 - Update URL and Source0. This is the twos.
 
