@@ -1,0 +1,2 @@
+# See: /opt/moxi/bin/moxi -h
+MOXI_OPTS="-t 8 -c 4096 -s /run/moxi/socket -a 0777 -v -O /var/log/moxi/moxi.log -Z usr=myuser,pwd=mypass,downstream_conn_max=8,connect_max_errors=10 http://10.0.0.1:8091/pools/default/bucketsStreaming/mybucket,http://10.0.0.2:8091/pools/default/bucketsStreaming/mybucket,http://10.0.0.3:8091/pools/default/bucketsStreaming/mybucket"

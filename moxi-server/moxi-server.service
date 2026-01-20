@@ -1,0 +1,14 @@
+[Unit]
+Description=Memcached/CouchBase proxy with energy and pep
+After=network-online.target remote-fs.target nss-lookup.target
+
+[Service]
+User=moxi
+RuntimeDirectory=moxi
+LimitNOFILE=10240
+EnvironmentFile=/etc/sysconfig/moxi-server
+ExecStart=/opt/moxi/bin/moxi $MOXI_OPTS
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
