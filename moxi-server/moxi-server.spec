@@ -1,13 +1,11 @@
-# The debugsource is empty on RHEL9
-%if 0%{?rhel} < 10
-%global _debugsource_template %{nil}
-%endif
-
 %global gh_commit c460b9a75069538782d319d2e37c34a1a9f1a85b
+
+# Remove ugly builddir prefix from __FILE__ used in all log lines
+%global optflags %{optflags} -fmacro-prefix-map=%{_builddir}/moxi-%{gh_commit}/=
 
 Name: moxi-server
 Version: 6.0.0
-Release: 1%{?dist}
+Release: 2%{?dist}
 Summary: Memcached/CouchBase proxy with energy and pep
 Group: System Environment/Daemons
 License: BSD
@@ -37,18 +35,15 @@ hosting both CouchBase and Memcached type buckets.
 
 %prep
 %setup -q -n moxi-%{gh_commit}
-mkdir build
 
 
 %build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt/moxi ..
-%make_build
+%cmake -DCMAKE_INSTALL_PREFIX=/opt/moxi
+%cmake_build
 
 
 %install
-cd build
-%make_install
+%cmake_install
 install -d %{buildroot}/var/log/moxi
 # Keep the same LD_LIBRARY_PATH hack script as the original
 mv %{buildroot}/opt/moxi/bin/moxi %{buildroot}/opt/moxi/bin/moxi.actual
@@ -95,6 +90,10 @@ install -D -p -m 0640 %{SOURCE4} %{buildroot}/etc/sysconfig/moxi-server
 
 
 %changelog
+* Wed Jan 21 2026 Matthias Saou <matthias@saou.eu> 6.0.0-2
+- Use proper %%cmake macros, fixes debugfiles on RHEL9.
+- Use macro-prefix-map to shorten prefix of all log lines.
+
 * Tue Jan 20 2026 Matthias Saou <matthias@saou.eu> 6.0.0-1
 - Update to 6.0.0 standalone fork by @andrewkendall.
 - Keep package name and LD_LIBRARY_PATH hack to be drop-in replacement.
