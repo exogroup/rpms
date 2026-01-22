@@ -1,0 +1,32 @@
+diff -Naupr moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b.orig/src/log.c moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b/src/log.c
+--- moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b.orig/src/log.c	2025-12-08 19:47:10.000000000 +0100
++++ moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b/src/log.c	2026-01-22 14:01:57.800284247 +0100
+@@ -208,12 +208,13 @@ int log_error_write(moxi_log *mlog, cons
+ 
+     /* vsprintf returns total string length, so no buffer overflow is
+      * possible, but we can shoot logbuf_used past MAX_LOGBUF_LEN */
+-    if (logbuf_used >= MAX_LOGBUF_LEN) {
+-        logbuf_used = MAX_LOGBUF_LEN - 1;
++    if (logbuf_used >= MAX_LOGBUF_LEN - 1) {
++        logbuf_used = MAX_LOGBUF_LEN - 2;
+     }
+ 
+-    if (logbuf_used > 1) {
+-        logbuf[logbuf_used - 1] = '\n';
++    if (logbuf_used > 1 && logbuf[logbuf_used - 1] != '\n') {
++        logbuf[logbuf_used] = '\n';
++        logbuf_used++;
+     }
+ 
+     cb_assert(logbuf_used < MAX_LOGBUF_LEN);
+diff -Naupr moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b.orig/src/log.h moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b/src/log.h
+--- moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b.orig/src/log.h	2025-12-08 19:47:10.000000000 +0100
++++ moxi-c460b9a75069538782d319d2e37c34a1a9f1a85b/src/log.h	2026-01-22 13:32:27.500661271 +0100
+@@ -47,6 +47,6 @@ extern moxi_log *ml;
+ #endif
+ 
+ #undef perror
+-#define perror(str) log_error_write(ml, __FILE__, __LINE__, str, ": %s", strerror(errno));
++#define perror(str) log_error_write(ml, __FILE__, __LINE__, "%s: %s", str, strerror(errno));
+ 
+ #endif

@@ -5,7 +5,7 @@
 
 Name: moxi-server
 Version: 6.0.0
-Release: 2%{?dist}
+Release: 3%{?dist}
 Summary: Memcached/CouchBase proxy with energy and pep
 Group: System Environment/Daemons
 License: BSD
@@ -15,6 +15,7 @@ Source1: moxi.notactual
 Source2: moxi-sysusers.conf
 Source3: moxi-server.service
 Source4: moxi-server.sysconfig
+Patch0: moxi-6.0.0-logging.patch
 BuildRequires: cmake
 BuildRequires: gcc
 BuildRequires: gcc-c++
@@ -34,7 +35,8 @@ hosting both CouchBase and Memcached type buckets.
 
 
 %prep
-%setup -q -n moxi-%{gh_commit}
+#setup -q -n moxi-%{gh_commit}
+%autosetup -p1 -n moxi-%{gh_commit}
 
 
 %build
@@ -90,6 +92,9 @@ install -D -p -m 0640 %{SOURCE4} %{buildroot}/etc/sysconfig/moxi-server
 
 
 %changelog
+* Thu Jan 22 2026 Matthias Saou <matthias@saou.eu> 6.0.0-3
+- Include patch to fix some identified logging issues.
+
 * Wed Jan 21 2026 Matthias Saou <matthias@saou.eu> 6.0.0-2
 - Use proper %%cmake macros, fixes debugfiles on RHEL9.
 - Use macro-prefix-map to shorten prefix of all log lines.
