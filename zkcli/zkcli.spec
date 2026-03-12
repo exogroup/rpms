@@ -1,25 +1,14 @@
-%ifarch x86_64
-%define platform amd64
-%define goarch amd64
-%define source_id 0
-%endif
-%ifarch aarch64
-%define platform arm64
-%define goarch arm64
-%define source_id 1
-%endif
-
 # Repository commit id
 %define commit 1fb450f29d6072d3686ed430ab8c79c98dd32191
 %define shortcommit %(c=%{commit}; echo ${c:0:7})
 
 Name: zkcli
 Version: 0.4.1
-Release: %{shortcommit}.1
+Release: 0.1.%{shortcommit}
 License: MIT
 URL: https://github.com/maxjustus/zkcli
 # Fetching the source from a specific commit ID
-Source0: zkcli-%{version}.tar.gz
+Source0: zkcli-%{shortcommit}.tar.gz
 Summary: An interactive Zookeeper client written in Go
 ExclusiveArch: x86_64 aarch64
 BuildRequires: golang
@@ -31,13 +20,11 @@ An interactive Zookeeper client written in Go
 
 %prep
 # Setup for a specific commit
-%autosetup -n zkcli-%{version}
+%autosetup -n zkcli-%{shortcommit}
 
 
 %build
-# Set GOARCH based on the platform and build the binary
-export GOARCH=%{goarch}
-go build -o zkcli
+%gobuild -o zkcli
 
 
 %install
