@@ -29,9 +29,9 @@
 # Custom
 %global geoip2_version 3.4
 %global naxsi_version 1.7
-%global passenger_version 6.0.27
+%global passenger_version 6.1.2
 %global brotli_version 1.0.0rc
-%global lua_version 0.10.28
+%global lua_version 0.10.29
 %bcond_without geoip2
 %bcond_without naxsi
 %bcond_with    passenger
@@ -63,7 +63,7 @@
 
 Name:              nginx
 Epoch:             2
-Version:           1.26.3
+Version:           1.30.1
 Release:           1%{?dist}.ex2
 
 Summary:           A high performance web server and reverse proxy server
@@ -609,7 +609,7 @@ fi
 
 %files
 %license LICENSE
-%doc CHANGES README README.dynamic
+%doc CHANGES README.dynamic
 %if 0%{?rhel} == 7
 %doc UPGRADE-NOTES-1.6-to-1.10
 %endif
@@ -727,6 +727,11 @@ fi
 
 
 %changelog
+* Thu May 14 2026 Matthias Saou <matthias@saou.eu> 2:1.30.1-1.ex2
+- Update to 1.30.1.
+- Update Phusion Passenger to 6.1.2.
+- Update lua module to 0.10.29.
+
 * Tue May 20 2025 Matthias Saou <matthias@saou.eu> 2:1.26.3-1.ex2
 - Don't apply non-working pcre patch on RHEL 10.
 
