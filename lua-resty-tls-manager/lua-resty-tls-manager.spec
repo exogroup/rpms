@@ -3,10 +3,11 @@
 Summary: Library to automatically provide SSL certificate files
 Name: lua-resty-tls-manager
 Version: 0.3.1
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: BSD
 URL: https://github.com/exogroup/lua-resty-tls-manager
 Source0: https://github.com/exogroup/lua-resty-tls-manager/archive/refs/tags/v%{version}/lua-resty-tls-manager-%{version}.tar.gz
+Patch0: lua-resty-tls-manager-ocsp_responder.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: lua-resty-core
@@ -18,6 +19,7 @@ Library to automatically provide SSL certificate files.
 
 %prep
 %setup -q
+%patch 0 -p1
 
 
 %build
@@ -39,6 +41,9 @@ make install DESTDIR=%{buildroot} LUA_LIB_DIR=%{lua_pkgdir}
 %{lua_pkgdir}/resty/tls_manager/strategy/*.lua
 
 %changelog
+* Thu May 14 2026 Matthias Saou <matthias@saou.eu> 0.3.1-2
+- Include ocsp_responder patch.
+
 * Thu May 02 2024 Michele Brodoloni <michele@exads.com> - 0.3.1-1
 - Update to v0.3.1
 
