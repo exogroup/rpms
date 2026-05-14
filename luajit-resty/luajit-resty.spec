@@ -1,4 +1,4 @@
-%global date 20241113
+%global date 20250117
 
 Name:           luajit-resty
 Version:        2.1.0
@@ -88,6 +88,9 @@ make check || true
 %{_libdir}/libluajit-*.a
 
 %changelog
+* Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 2.1-0.3_20250117
+- Update to v2.1-20250117.
+
 * Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 2.1-0.2_20241113
 - Update to v2.1-20241113.
 - Remove the beta3 rctag and srcver macro.

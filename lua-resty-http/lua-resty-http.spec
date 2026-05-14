@@ -3,7 +3,7 @@
 Summary: Lua HTTP client cosocket driver for ngx_lua
 Name: lua-resty-http
 Version: 0.17.2
-Release: 2%{?dist}
+Release: 3%{?dist}
 License: BSD
 URL: https://github.com/ledgetech/lua-resty-http
 Source0: https://github.com/ledgetech/lua-resty-http/archive/refs/tags/v%{version}/lua-resty-http-%{version}.tar.gz
@@ -11,6 +11,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildArch: noarch
 Requires: lua-resty-core
 Requires: lua-resty-string
+Requires: lua-resty-openssl
 BuildRequires: make
 BuildRequires: luajit-resty-devel
 
@@ -38,6 +39,9 @@ make install DESTDIR=%{buildroot} LUA_LIB_DIR=%{lua_pkgdir}
 
 
 %changelog
+* Thu Dec 12 2024 Matthias Saou <matthias@saou.eu> 0.17.2-3
+- Add new lua-resty-openssl requirement.
+
 * Tue Dec  3 2024 Matthias Saou <matthias@saou.eu> 0.17.2-2
 - Update to 0.17.2.
 - Add new lua-resty-string requirement.
