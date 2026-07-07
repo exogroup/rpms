@@ -1,6 +1,6 @@
 Name:      nagios-plugins-postgres
-Version:   2.25.0
-Release:   2%{?dist}
+Version:   2.26.0
+Release:   1%{?dist}
 Summary:   Provides check_postgres support for Nagios
 Group:     Applications/System
 License:   BSD
@@ -21,7 +21,7 @@ Provides check_postgres support for Nagios.
 
 %prep
 %setup -q -n check_postgres-%{version}
-%patch0 -p1
+%patch 0 -p1
 
 
 %install
@@ -41,6 +41,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul  7 2026 Matthias Saou <matthias@saou.eu> 2.26.0-1
+- Update to 2.26.0.
+
 * Thu Jan 27 2022 Matthias Saou <matthias@saou.eu> 2.25.0-2
 - Add missing perl(Time::HiRes) requirement.
 
