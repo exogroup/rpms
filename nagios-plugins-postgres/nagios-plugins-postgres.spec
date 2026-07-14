@@ -1,6 +1,6 @@
 Name:      nagios-plugins-postgres
 Version:   2.26.0
-Release:   1%{?dist}
+Release:   2%{?dist}
 Summary:   Provides check_postgres support for Nagios
 Group:     Applications/System
 License:   BSD
@@ -10,7 +10,6 @@ Patch0:    nagios-plugins-postgres-disable_no_psql_option.patch
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 Requires:  nagios-plugins
 Requires:  perl(Data::Dumper)
-Requires:  perl(DateTime::Format::DateParse)
 Requires:  perl(Digest::MD5)
 Requires:  perl(Time::HiRes)
 BuildArch: noarch
@@ -41,6 +40,9 @@ rm -rf %{buildroot}
 
 
 %changelog
+* Tue Jul 14 2026 Matthias Saou <matthias@saou.eu> 2.26.0-2
+- Remove non required perl(DateTime::Format::DateParse).
+
 * Tue Jul  7 2026 Matthias Saou <matthias@saou.eu> 2.26.0-1
 - Update to 2.26.0.
 
