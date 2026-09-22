@@ -6,7 +6,7 @@
 %global daemon_name kafka_exporter
 
 Name:             kafka_exporter
-Version:          1.9.0
+Version:          1.10.0
 Release:          1
 Summary:          Kafka exporter for Prometheus
 Group:            Applications/System
@@ -60,6 +60,10 @@ getent passwd kafka_exporter >/dev/null || \
 
 
 %changelog
+* Tue Sep 22 2026 Matthias Saou <matthias@saou.eu> 1.10.0-1
+- Update to 1.10.0.
+- Increase LimitNOFILE from default 1024 to 4096 since we are hitting the max.
+
 * Wed Aug 13 2025 Matthias Saou <matthias@saou.eu> 1.9.0-1
 - Update to 1.9.0.
 

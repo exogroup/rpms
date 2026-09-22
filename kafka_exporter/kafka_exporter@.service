@@ -5,6 +5,7 @@ After=network-online.target confluent-kafka.service
 [Service]
 User=kafka_exporter
 ExecStart=/usr/sbin/kafka_exporter --kafka.server=%I
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target
