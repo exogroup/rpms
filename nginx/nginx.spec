@@ -63,8 +63,8 @@
 
 Name:              nginx
 Epoch:             2
-Version:           1.30.1
-Release:           1%{?dist}.ex2
+Version:           1.30.7
+Release:           1%{?dist}.ex1
 
 Summary:           A high performance web server and reverse proxy server
 License:           BSD-2-Clause
@@ -727,6 +727,9 @@ fi
 
 
 %changelog
+* Wed Nov 18 2026 Matthias Saou <matthias@saou.eu> 2:1.30.7-1.ex2
+- Update to 1.30.7.
+
 * Thu May 14 2026 Matthias Saou <matthias@saou.eu> 2:1.30.1-1.ex2
 - Update to 1.30.1.
 - Update Phusion Passenger to 6.1.2.
